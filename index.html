@@ -1734,6 +1734,10 @@ async function loadTeacherData(){
             records[r.quizNumber].push(r);
         });
 
+        Object.keys(records).forEach(key=>{
+            records[key] = dedupeRecordsByAttempt(dedupeRecordsById(records[key]));
+        });
+
         for(let i=1;i<=10;i++){
             if(!quizzes[i]) quizzes[i] = createQuiz(i);
             if(!records[i]) records[i] = [];
@@ -2011,53 +2015,88 @@ async function startQuiz(){
         attemptId = generateId("attempt");
     }
 
+    records[currentStudentQuiz] = records[currentStudentQuiz] || [];
+
+    // If this is the same active attempt being resumed, reuse the existing
+    // dashboard record instead of creating a second row.
+    let existingAttemptRecord = null;
+    if(guard.resume && attemptId){
+        existingAttemptRecord = records[currentStudentQuiz].find(r =>
+            String(r.attemptId || "") === String(attemptId) &&
+            String(r.email || "").trim().toLowerCase() === currentStudentEmail
+        ) || null;
+    }
+
+    const isResuming = !!existingAttemptRecord;
+
     answers =
         new Array(currentQuiz.questions.length)
         .fill(null);
 
-    securityEvents = 0;
+    securityEvents = isResuming
+        ? Number(existingAttemptRecord.securityEvents || 0)
+        : 0;
 
     quizStarted = true;
     quizSubmitted = false;
     submitting = false;
-    quizStartedAt = new Date().toISOString();
-    currentRecordId = generateId("record");
 
-    // Create the teacher-dashboard record immediately.
-    // It remains visible even if the student never submits the quiz.
-    const startRecord = {
-        id:currentRecordId,
-        attemptId,
-        teacherId:currentStudentTeacherId,
-        quizNumber:currentStudentQuiz,
-        quizTitle:currentQuiz.title,
-        student:currentStudent,
-        email:currentStudentEmail,
-        section:currentStudentSection,
-        correct:0,
-        total:currentQuiz.questions.reduce((sum,q)=>sum + getQuestionScore(q,null).maxPoints,0),
-        percentage:0,
-        securityEvents:0,
-        automatic:false,
-        status:"In Progress",
-        submissionType:"Started",
-        startedAt:quizStartedAt,
-        submittedAt:null,
-        lastAction:"Started quiz",
-        lastActivityAt:quizStartedAt,
-        answeredCount:0,
-        currentQuestion:1,
-        detailedAnswers:currentQuiz.questions.map((question,index)=>({
-            number:index+1, type:question.type, question:question.question,
-            studentAnswer:null, selected:null, correct:null, isCorrect:false
-        }))
-    };
-    records[currentStudentQuiz] = records[currentStudentQuiz] || [];
-    records[currentStudentQuiz] = records[currentStudentQuiz].filter(r=>r.id !== currentRecordId);
-    records[currentStudentQuiz].push(startRecord);
+    quizStartedAt = isResuming
+        ? (existingAttemptRecord.startedAt || new Date().toISOString())
+        : new Date().toISOString();
+
+    currentRecordId = isResuming
+        ? existingAttemptRecord.id
+        : generateId("record");
+
+    // Create the dashboard record only for a new attempt. When an active
+    // attempt is resumed, update the same record ID so one attempt = one row.
+    const startRecord = isResuming
+        ? Object.assign(existingAttemptRecord, {
+            student:currentStudent,
+            email:currentStudentEmail,
+            section:currentStudentSection,
+            lastAction:"Resumed quiz",
+            lastActivityAt:new Date().toISOString(),
+            securityEvents,
+            status:"In Progress"
+        })
+        : {
+            id:currentRecordId,
+            attemptId,
+            teacherId:currentStudentTeacherId,
+            quizNumber:currentStudentQuiz,
+            quizTitle:currentQuiz.title,
+            student:currentStudent,
+            email:currentStudentEmail,
+            section:currentStudentSection,
+            correct:0,
+            total:currentQuiz.questions.reduce((sum,q)=>sum + getQuestionScore(q,null).maxPoints,0),
+            percentage:0,
+            securityEvents:0,
+            automatic:false,
+            status:"In Progress",
+            submissionType:"Started",
+            startedAt:quizStartedAt,
+            submittedAt:null,
+            lastAction:"Started quiz",
+            lastActivityAt:quizStartedAt,
+            answeredCount:0,
+            currentQuestion:1,
+            detailedAnswers:currentQuiz.questions.map((question,index)=>({
+                number:index+1, type:question.type, question:question.question,
+                studentAnswer:null, selected:null, correct:null, isCorrect:false
+            }))
+        };
+
+    if(!isResuming){
+        records[currentStudentQuiz].push(startRecord);
+    }
+
+    records[currentStudentQuiz] = dedupeRecordsByAttempt(dedupeRecordsById(records[currentStudentQuiz]));
     saveRecords();
     sendToGoogleSheets(startRecord, "save").then(response=>{
-        if(!response || !response.ok) console.error("Could not create in-progress record", response);
+        if(!response || !response.ok) console.error("Could not save in-progress record", response);
     });
 
     renderQuiz();
@@ -2635,6 +2674,46 @@ function dedupeRecordsById(list){
     return Array.from(map.values());
 }
 
+// One login/attempt must always correspond to one dashboard row.
+// Older versions could create a new record when an active attempt was
+// resumed, even though the attemptId stayed the same.
+function dedupeRecordsByAttempt(list){
+    const map = new Map();
+    (Array.isArray(list) ? list : []).forEach(record=>{
+        if(!record) return;
+
+        const email = String(record.email || "").trim().toLowerCase();
+        // Only one active/in-progress row is allowed for the same student and quiz.
+        // Completed attempts remain separate and are identified by attemptId.
+        const key = record.status === "In Progress"
+            ? ["active", record.teacherId || "", record.quizNumber || "", email].join("|")
+            : record.attemptId
+                ? ["attempt", String(record.attemptId)].join("|")
+                : [record.teacherId || "", record.quizNumber || "", email, record.status || "", record.startedAt || record.id || ""].join("|");
+
+        const old = map.get(key);
+        if(!old){
+            map.set(key, record);
+            return;
+        }
+
+        const oldTime = new Date(old.lastActivityAt || old.submittedAt || old.startedAt || 0).getTime();
+        const newTime = new Date(record.lastActivityAt || record.submittedAt || record.startedAt || 0).getTime();
+        if(newTime >= oldTime){
+            map.set(key, record);
+        }
+    });
+    return Array.from(map.values());
+}
+
+function countStudentAttempts(list, email){
+    const normalized = String(email || "").trim().toLowerCase();
+    const matching = (Array.isArray(list) ? list : []).filter(r=>
+        String(r.email || "").trim().toLowerCase() === normalized
+    );
+    return dedupeRecordsByAttempt(matching).length;
+}
+
 async function loadRecordsFromGoogleSheets(quizNumber){
     if(!isTeacher()) return null;
 
@@ -2645,7 +2724,7 @@ async function loadRecordsFromGoogleSheets(quizNumber){
         }, "GET");
 
         return data && data.ok && Array.isArray(data.records)
-            ? dedupeRecordsById(data.records)
+            ? dedupeRecordsByAttempt(dedupeRecordsById(data.records))
             : null;
     }catch(error){
         console.error(error);
@@ -2663,7 +2742,7 @@ async function refreshRecordsFromGoogleSheets(){
         return false;
     }
 
-    records[currentQuizNumber] = dedupeRecordsById(remote);
+    records[currentQuizNumber] = dedupeRecordsByAttempt(dedupeRecordsById(remote));
     saveRecords();
     renderRecords();
     showAdminStatus("Student records refreshed.");
@@ -2689,7 +2768,7 @@ function startLiveMonitor(){
     liveMonitorInterval=setInterval(async()=>{
         const remote=await loadRecordsFromGoogleSheets(currentQuizNumber);
         if(remote){
-            const clean = dedupeRecordsById(remote);
+            const clean = dedupeRecordsByAttempt(dedupeRecordsById(remote));
             records[currentQuizNumber]=clean;
             saveRecords();
             renderRecords();
@@ -2707,7 +2786,7 @@ function renderLiveStudents(all){
     }).sort((a,b)=>new Date(b.lastActivityAt||b.startedAt||0)-new Date(a.lastActivityAt||a.startedAt||0));
     if(!active.length){box.innerHTML='<div class="small">No students are currently taking this quiz.</div>';return;}
     box.innerHTML=active.map(r=>{
-        const count=all.filter(x=>x.email && r.email && x.email.toLowerCase()===r.email.toLowerCase()).length;
+        const count=countStudentAttempts(all, r.email);
         return `<div style="padding:12px;border:1px solid #dbeafe;border-radius:10px;margin-top:8px;background:white"><strong>${escapeHTML(r.student)}</strong> <span class="badge badge-blue">LIVE</span><div class="small">Email: ${escapeHTML(r.email||"—")} · Login count: ${count}</div><div class="small"><strong>Action:</strong> ${escapeHTML(r.lastAction||"Started quiz")} · Question ${r.currentQuestion||1} · ${r.answeredCount||0}/${r.total||0} answered</div><div class="small">Last seen: ${escapeHTML(formatDate(r.lastActivityAt||r.startedAt))}</div></div>`;
     }).join("");
 }
@@ -4781,7 +4860,7 @@ async function refreshQuizData(){
 ========================================================= */
 
 function renderRecords(){
-    records[currentQuizNumber] = dedupeRecordsById(getRecords(currentQuizNumber));
+    records[currentQuizNumber] = dedupeRecordsByAttempt(dedupeRecordsById(getRecords(currentQuizNumber)));
 
     if(!isTeacher()){
         return;
@@ -5047,7 +5126,7 @@ function renderRecords(){
                             }
 
                         </span>
-                        <div class="small">Logins: ${getRecords(currentQuizNumber).filter(x => x.email && record.email && x.email.toLowerCase() === record.email.toLowerCase()).length}</div>
+                        <div class="small">Logins: ${countStudentAttempts(getRecords(currentQuizNumber), record.email)}</div>
 
                     </td>
 
