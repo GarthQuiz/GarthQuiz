@@ -333,6 +333,17 @@ select:focus{
     margin-bottom:12px;
 }
 
+.question-image{
+    max-width:100%;
+    width:100%;
+    height:auto;
+    display:block;
+    user-select:none;
+    -webkit-user-select:none;
+    -webkit-touch-callout:none;
+    pointer-events:none;
+}
+
 .question-text{
     font-size:20px;
     font-weight:800;
@@ -2115,6 +2126,103 @@ async function startQuiz(){
    STUDENT QUIZ RENDERING
 ========================================================= */
 
+function renderQuestionAsImage(container, text){
+    if(!container) return;
+
+    container.innerHTML = "";
+
+    const value = String(text || "");
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    const fontSize = 18;
+    const fontFamily = "Arial, Helvetica, sans-serif";
+    const fontWeight = "600";
+    const lineHeight = 30;
+    const padding = 24;
+    const maxWidth = Math.min(1100, Math.max(280, window.innerWidth - 100));
+    const textWidth = maxWidth - padding * 2;
+
+    ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+
+    const lines = [];
+    value.split(/\r?\n/).forEach(paragraph => {
+        if(paragraph === ""){
+            lines.push("");
+            return;
+        }
+
+        const words = paragraph.split(/\s+/);
+        let line = "";
+
+        words.forEach(word => {
+            const test = line ? line + " " + word : word;
+            if(ctx.measureText(test).width <= textWidth){
+                line = test;
+                return;
+            }
+
+            if(line){
+                lines.push(line);
+                line = "";
+            }
+
+            // Break extremely long words so they still fit inside the image.
+            if(ctx.measureText(word).width <= textWidth){
+                line = word;
+            }else{
+                let part = "";
+                for(const ch of word){
+                    const testPart = part + ch;
+                    if(ctx.measureText(testPart).width <= textWidth){
+                        part = testPart;
+                    }else{
+                        if(part) lines.push(part);
+                        part = ch;
+                    }
+                }
+                line = part;
+            }
+        });
+
+        if(line || paragraph === "") lines.push(line);
+    });
+
+    const safeLines = lines.length ? lines : [""];
+    const cssWidth = maxWidth;
+    const cssHeight = padding * 2 + safeLines.length * lineHeight;
+    const ratio = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+
+    canvas.width = Math.ceil(cssWidth * ratio);
+    canvas.height = Math.ceil(cssHeight * ratio);
+    canvas.style.width = cssWidth + "px";
+    canvas.style.height = cssHeight + "px";
+
+    ctx.scale(ratio, ratio);
+    ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+    ctx.fillStyle = "#111827";
+    ctx.textBaseline = "top";
+
+    safeLines.forEach((line, i) => {
+        ctx.fillText(line, padding, padding + i * lineHeight);
+    });
+
+    const image = document.createElement("img");
+    image.src = canvas.toDataURL("image/png");
+    image.alt = "Question";
+    image.draggable = false;
+    image.className = "question-image";
+    image.setAttribute("aria-label", "Question image");
+    image.style.userSelect = "none";
+    image.style.webkitUserSelect = "none";
+    image.style.pointerEvents = "none";
+    image.style.maxWidth = "100%";
+    image.style.height = "auto";
+    image.style.display = "block";
+
+    container.appendChild(image);
+}
+
 function renderQuiz(){
 
     $("quizHeaderTitle").textContent =
@@ -2167,9 +2275,13 @@ function renderQuiz(){
             <div class="answer-area"></div>
         `;
 
-        card.querySelector(".question-text")
-            .textContent =
-            question.question;
+        // Render the question as an image instead of selectable HTML text.
+        // This makes the question behave like a picture in the student dashboard
+        // so normal text selection/copying cannot copy the question text.
+        renderQuestionAsImage(
+            card.querySelector(".question-text"),
+            question.question
+        );
 
         const answerArea =
             card.querySelector(".answer-area");
@@ -5649,27 +5761,17 @@ function exportAllData(){
    CLEAR RECORDS
 ========================================================= */
 
-function deleteRecord(id){
+async function deleteRecord(id){
 
-    if(!isTeacher()){
-        return;
-    }
+    if(!isTeacher()) return;
 
-    const recordsForQuiz =
-        getRecords(currentQuizNumber);
+    const recordsForQuiz = getRecords(currentQuizNumber);
+    const record = recordsForQuiz.find(r => r.id === id);
 
-    const index =
-        recordsForQuiz.findIndex(
-            record => record.id === id
-        );
-
-    if(index === -1){
+    if(!record){
         alert("Student record not found.");
         return;
     }
-
-    const record =
-        recordsForQuiz[index];
 
     if(!confirm(
         "Delete the record for " +
@@ -5680,29 +5782,79 @@ function deleteRecord(id){
         "Score: " +
         record.percentage +
         "%\n\n" +
-        "This action cannot be undone."
+        "This will permanently remove this attempt from the teacher dashboard."
     )){
         return;
     }
 
-    recordsForQuiz.splice(index, 1);
+    // Older versions could leave duplicate remote rows with the same attemptId.
+    // If we delete only the visible row, the live monitor can fetch the leftover
+    // duplicate and make the deleted record appear again. Delete every remote
+    // row belonging to this exact attempt (or exact active student record).
+    const allLocal = getRecords(currentQuizNumber);
+    const related = allLocal.filter(r => {
+        if(record.attemptId && r.attemptId){
+            return String(r.attemptId) === String(record.attemptId);
+        }
+
+        return (
+            String(r.teacherId || "") === String(record.teacherId || "") &&
+            String(r.quizNumber || currentQuizNumber) === String(record.quizNumber || currentQuizNumber) &&
+            String(r.email || "").trim().toLowerCase() === String(record.email || "").trim().toLowerCase() &&
+            r.status === record.status
+        );
+    });
+
+    const deleteTargets = related.length ? related : [record];
+    const uniqueIds = [...new Set(deleteTargets.map(r => r.id).filter(Boolean))];
+
+    showAdminStatus("Deleting student record...");
+
+    let failed = [];
+    for(const targetId of uniqueIds){
+        const target = deleteTargets.find(r => r.id === targetId) || record;
+        const response = await sendToGoogleSheets(target, "delete");
+        if(!response || !response.ok){
+            failed.push(targetId);
+        }
+    }
+
+    if(failed.length){
+        alert("The record could not be completely deleted from the server. Please try again.");
+        await refreshRecordsFromGoogleSheets();
+        return;
+    }
+
+    // Remove all local copies of this attempt too.
+    const idsToRemove = new Set(uniqueIds);
+    records[currentQuizNumber] = allLocal.filter(r => !idsToRemove.has(r.id));
     saveRecords();
 
-    // Delete the same record from Google Sheets.
-    sendToGoogleSheets(record, "delete");
-
-    if(currentRecordId === id){
+    if(currentRecordId && idsToRemove.has(currentRecordId)){
         currentRecordId = null;
         closeRecordDetail();
     }
 
     renderRecords();
+    showAdminStatus("Student record deleted successfully.");
 
-    showAdminStatus(
-        "Student record deleted successfully."
-    );
+    // Verify the server state so the 3-second live monitor cannot immediately
+    // restore a record that was not actually deleted.
+    const verify = await loadRecordsFromGoogleSheets(currentQuizNumber);
+    if(verify){
+        const stillThere = verify.some(r => idsToRemove.has(r.id));
+        if(stillThere){
+            alert("The server still contains this record. Please delete it again.");
+            records[currentQuizNumber] = verify;
+            saveRecords();
+            renderRecords();
+        }else{
+            records[currentQuizNumber] = verify;
+            saveRecords();
+            renderRecords();
+        }
+    }
 }
-
 
 function deleteCurrentRecord(){
 
