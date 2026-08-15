@@ -1,0 +1,5935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GarthQuiz v3</title>
+
+<style>
+:root{
+    --primary:#2563eb;
+    --primary-dark:#1d4ed8;
+    --success:#16a34a;
+    --danger:#dc2626;
+    --warning:#f59e0b;
+    --dark:#0f172a;
+    --text:#1e293b;
+    --muted:#64748b;
+    --border:#e2e8f0;
+    --bg:#f1f5f9;
+    --white:#fff;
+    --radius:16px;
+    --shadow:0 10px 30px rgba(15,23,42,.08);
+}
+
+*{box-sizing:border-box}
+
+html,body{
+    margin:0;
+    min-height:100%;
+    font-family:Inter,Arial,Helvetica,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+}
+
+button,input,textarea,select{
+    font:inherit;
+}
+
+button{
+    border:0;
+    cursor:pointer;
+}
+
+.hidden{
+    display:none!important;
+}
+
+.screen{
+    min-height:100vh;
+    padding:24px;
+}
+
+.container{
+    width:min(1200px,100%);
+    margin:auto;
+}
+
+.card{
+    background:#fff;
+    border-radius:var(--radius);
+    padding:24px;
+    box-shadow:var(--shadow);
+    margin-bottom:20px;
+}
+
+.login-card{
+    max-width:700px;
+    margin:6vh auto;
+}
+
+.center{
+    text-align:center;
+}
+
+h1,h2,h3{
+    margin-top:0;
+}
+
+.subtitle{
+    color:var(--muted);
+    text-align:center;
+}
+
+.form-group{
+    margin-bottom:18px;
+}
+
+label{
+    display:block;
+    font-weight:700;
+    margin-bottom:7px;
+}
+
+input,textarea,select{
+    width:100%;
+    padding:13px 14px;
+    border:1px solid #cbd5e1;
+    border-radius:10px;
+    outline:none;
+    background:#fff;
+    color:var(--text);
+}
+
+textarea{
+    min-height:120px;
+    resize:vertical;
+}
+
+input:focus,
+textarea:focus,
+select:focus{
+    border-color:var(--primary);
+    box-shadow:0 0 0 3px rgba(37,99,235,.12);
+}
+
+.btn{
+    padding:12px 18px;
+    border-radius:10px;
+    font-weight:800;
+    transition:.2s;
+}
+
+.btn:hover{
+    transform:translateY(-1px);
+}
+
+.btn-primary{
+    background:var(--primary);
+    color:#fff;
+}
+
+.btn-primary:hover{
+    background:var(--primary-dark);
+}
+
+.btn-success{
+    background:var(--success);
+    color:#fff;
+}
+
+.btn-danger{
+    background:var(--danger);
+    color:#fff;
+}
+
+.btn-warning{
+    background:var(--warning);
+    color:#111827;
+}
+
+.btn-dark{
+    background:var(--dark);
+    color:#fff;
+}
+
+.btn-secondary{
+    background:#e2e8f0;
+    color:#0f172a;
+}
+
+.full{
+    width:100%;
+}
+
+.button-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:15px;
+}
+
+.error{
+    background:#fef2f2;
+    color:#991b1b;
+    border:1px solid #fecaca;
+    padding:12px;
+    border-radius:10px;
+    margin-bottom:15px;
+}
+
+.success-message{
+    background:#ecfdf5;
+    color:#166534;
+    border:1px solid #bbf7d0;
+    padding:12px;
+    border-radius:10px;
+    margin-bottom:15px;
+}
+
+.warning-message{
+    background:#fffbeb;
+    color:#92400e;
+    border:1px solid #fde68a;
+    padding:12px;
+    border-radius:10px;
+    margin-bottom:15px;
+}
+
+.small{
+    font-size:13px;
+    color:var(--muted);
+}
+
+.logo{
+    width:68px;
+    height:68px;
+    border-radius:18px;
+    background:linear-gradient(135deg,#2563eb,#7c3aed);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:32px;
+    font-weight:900;
+    margin:0 auto 15px;
+}
+
+/* HOME */
+
+.quiz-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:14px;
+    margin-top:25px;
+}
+
+.quiz-card{
+    border:2px solid var(--border);
+    border-radius:14px;
+    padding:20px;
+    background:#fff;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.quiz-card:hover{
+    border-color:#93c5fd;
+    background:#eff6ff;
+    transform:translateY(-2px);
+}
+
+.quiz-card h3{
+    color:var(--primary);
+    margin-bottom:6px;
+}
+
+.quiz-card p{
+    color:var(--muted);
+    margin:4px 0;
+}
+
+/* QUIZ */
+
+.quiz-topbar{
+    position:sticky;
+    top:0;
+    z-index:100;
+    background:var(--dark);
+    color:#fff;
+    box-shadow:0 5px 20px rgba(0,0,0,.2);
+}
+
+.quiz-topbar-inner{
+    width:min(1200px,100%);
+    margin:auto;
+    padding:15px 20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+}
+
+.student-label{
+    font-weight:800;
+}
+
+.timer-counter{
+    background:#dcfce7;
+    color:#166534;
+    padding:8px 13px;
+    border-radius:999px;
+    font-weight:900;
+    white-space:nowrap;
+}
+
+.timer-counter.warning{background:#fef3c7;color:#92400e}
+.timer-counter.danger{background:#fee2e2;color:#991b1b}
+
+.security-counter{
+    background:var(--warning);
+    color:#111827;
+    padding:8px 13px;
+    border-radius:999px;
+    font-weight:900;
+    white-space:nowrap;
+}
+
+.progress-container{
+    height:10px;
+    background:#cbd5e1;
+    border-radius:999px;
+    overflow:hidden;
+    margin:18px 0 8px;
+}
+
+.progress-bar{
+    height:100%;
+    width:0;
+    background:var(--primary);
+    transition:.2s;
+}
+
+.question-card{
+    margin-bottom:18px;
+}
+
+.question-number{
+    color:var(--primary);
+    font-weight:900;
+    font-size:13px;
+    text-transform:uppercase;
+    margin-bottom:8px;
+}
+
+.question-type{
+    display:inline-block;
+    background:#dbeafe;
+    color:#1d4ed8;
+    padding:5px 9px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:900;
+    margin-bottom:12px;
+}
+
+.question-text{
+    font-size:20px;
+    font-weight:800;
+    line-height:1.5;
+    margin-bottom:18px;
+    white-space:pre-wrap;
+}
+
+.answer-option{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    border:2px solid var(--border);
+    border-radius:12px;
+    padding:14px;
+    margin-bottom:10px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.answer-option:hover{
+    background:#f8fafc;
+    border-color:#93c5fd;
+}
+
+.answer-option.selected{
+    border-color:var(--primary);
+    background:#eff6ff;
+}
+
+.answer-option input{
+    width:auto;
+    margin-top:4px;
+}
+
+.identification-answer{
+    margin-top:10px;
+}
+
+.enumeration-answer{
+    margin-top:10px;
+}
+
+.enum-row{
+    display:grid;
+    grid-template-columns:50px 1fr;
+    gap:10px;
+    align-items:center;
+    margin-bottom:10px;
+}
+
+.enum-number{
+    font-weight:900;
+    color:var(--primary);
+    text-align:center;
+}
+
+/* RESULT */
+
+.score{
+    font-size:64px;
+    font-weight:900;
+    color:var(--primary);
+    text-align:center;
+    margin:20px 0;
+}
+
+/* ADMIN */
+
+.admin-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+.admin-nav{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin:20px 0;
+}
+
+.quiz-tabs{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:8px;
+    margin:15px 0 20px;
+}
+
+.quiz-tab{
+    padding:12px 8px;
+    border-radius:9px;
+    background:#e2e8f0;
+    font-weight:800;
+}
+
+.quiz-tab.active{
+    background:var(--primary);
+    color:#fff;
+}
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:15px;
+    margin-bottom:20px;
+}
+
+.stat{
+    border:1px solid var(--border);
+    background:#f8fafc;
+    padding:18px;
+    border-radius:12px;
+}
+
+.stat-number{
+    font-size:30px;
+    font-weight:900;
+    color:var(--primary);
+    margin-top:5px;
+}
+
+.editor-layout{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+}
+
+.question-editor{
+    background:#f8fafc;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:18px;
+    margin-bottom:15px;
+}
+
+.question-editor-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    margin-bottom:15px;
+}
+
+.option-editor{
+    display:grid;
+    grid-template-columns:35px 1fr auto;
+    gap:8px;
+    align-items:center;
+    margin-bottom:8px;
+}
+
+.option-letter{
+    text-align:center;
+    font-weight:900;
+    color:var(--primary);
+}
+
+.type-settings{
+    border:1px solid #bfdbfe;
+    background:#eff6ff;
+    border-radius:12px;
+    padding:15px;
+    margin:15px 0;
+}
+
+.records-wrap{
+    overflow-x:auto;
+    border:1px solid var(--border);
+    border-radius:12px;
+}
+
+.records-table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:1000px;
+}
+
+.records-table th,
+.records-table td{
+    padding:12px;
+    border-bottom:1px solid var(--border);
+    text-align:left;
+}
+
+.records-table th{
+    background:#f8fafc;
+    font-size:13px;
+    color:#475569;
+}
+
+.records-table tr:hover td{
+    background:#f8fafc;
+}
+
+.badge{
+    display:inline-block;
+    padding:5px 9px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:900;
+}
+
+.badge-green{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.badge-yellow{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.badge-red{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.badge-blue{
+    background:#dbeafe;
+    color:#1d4ed8;
+}
+
+.section-filter{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:10px;
+    margin-bottom:20px;
+}
+
+.detail-overlay{
+    position:fixed;
+    inset:0;
+    z-index:500;
+    overflow:auto;
+    padding:20px;
+    background:rgba(15,23,42,.7);
+}
+
+.answer-review{
+    padding:15px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    margin-bottom:10px;
+}
+
+.correct{
+    background:#f0fdf4;
+    border-color:#86efac;
+}
+
+.wrong{
+    background:#fef2f2;
+    border-color:#fca5a5;
+}
+
+.unanswered{
+    background:#fffbeb;
+    border-color:#fde68a;
+}
+
+.student-summary{
+    background:#f8fafc;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:18px;
+    margin-bottom:15px;
+}
+
+.security-warning{
+    position:fixed;
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:1000;
+    width:min(700px,calc(100% - 30px));
+    background:#fef3c7;
+    color:#92400e;
+    border:2px solid var(--warning);
+    padding:15px;
+    border-radius:12px;
+    box-shadow:0 10px 30px rgba(0,0,0,.2);
+    font-weight:800;
+}
+
+.security-warning.danger{
+    background:#fee2e2;
+    color:#991b1b;
+    border-color:#dc2626;
+}
+
+.accepted-answer{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:8px;
+    margin-bottom:8px;
+}
+
+@media(max-width:900px){
+    .stats{
+        grid-template-columns:repeat(3,1fr);
+    }
+
+    .editor-layout{
+        grid-template-columns:1fr;
+    }
+}
+
+@media(max-width:700px){
+    .quiz-grid{
+        grid-template-columns:1fr;
+    }
+
+    .quiz-tabs{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .stats{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .section-filter{
+        grid-template-columns:1fr;
+    }
+}
+
+@media(max-width:500px){
+    .screen{
+        padding:12px;
+    }
+
+    .card{
+        padding:18px;
+    }
+
+    .quiz-topbar-inner{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+
+    .stats{
+        grid-template-columns:1fr;
+    }
+
+    .question-text{
+        font-size:18px;
+    }
+
+    .option-editor{
+        grid-template-columns:30px 1fr;
+    }
+
+    .option-editor button{
+        grid-column:2;
+    }
+}
+
+@media print{
+    body{
+        display:none!important;
+    }
+}
+
+/* =========================================================
+   STUDENT QUIZ ANTI-COPY
+   Questions/options cannot be selected or copied.
+   Answer inputs remain selectable/editable.
+========================================================= */
+.student-quiz-content,
+.student-quiz-content * {
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    -webkit-touch-callout: none !important;
+}
+
+.student-quiz-content input,
+.student-quiz-content textarea,
+.student-quiz-content select {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    -webkit-touch-callout: default !important;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- HOME -->
+<section id="homeScreen" class="screen">
+<div class="container">
+
+<div class="card login-card">
+
+<div class="logo">Q</div>
+
+<h1 class="center">GarthQuiz</h1>
+
+<p class="subtitle">
+Published quizzes from all teachers appear below. Select a quiz and enter the code provided by your teacher.
+</p>
+
+<div id="homeQuizGrid" class="quiz-grid"></div>
+
+<div class="card" style="margin-top:20px;background:#f8fafc">
+<h3>Have a Quiz Code?</h3>
+<p class="small">Ask your teacher which published quiz the code belongs to, then select that quiz above.</p>
+</div>
+
+<hr style="border:0;border-top:1px solid #e2e8f0;margin:25px 0">
+
+<button class="btn btn-dark full" onclick="openTeacherLogin()">
+Teacher Dashboard
+</button>
+
+</div>
+</div>
+</section>
+
+
+<!-- STUDENT LOGIN -->
+<section id="studentScreen" class="screen hidden">
+<div class="container">
+
+<div class="card login-card">
+
+<h1 id="studentQuizTitle">Quiz</h1>
+
+<p class="subtitle">
+Enter your information to begin.
+</p>
+
+<div id="studentError" class="error hidden"></div>
+
+<div class="form-group">
+<label>Student Name</label>
+<input
+    type="text"
+    id="studentName"
+    placeholder="Enter your full name">
+</div>
+
+<div class="form-group">
+<label>Email Address</label>
+<input type="email" id="studentEmail" placeholder="Enter your email address" autocomplete="email">
+</div>
+
+<div class="form-group">
+<label>Class / Section</label>
+<input
+    type="text"
+    id="studentSection"
+    placeholder="Example: Grade 10 - Rizal">
+</div>
+
+<div style="background:#fff7ed;border:1px solid #fed7aa;padding:10px;border-radius:10px;margin-bottom:14px;font-size:13px">
+<strong>Attempt policy:</strong> You have up to <strong>2 attempts</strong> for this quiz. Refreshing the page during your active attempt will restore the same attempt and will not use another attempt.
+</div>
+
+<div class="form-group">
+<label>Quiz Access Code</label>
+<input
+    type="text"
+    id="studentQuizCode"
+    placeholder="Enter quiz code"
+    autocomplete="off">
+</div>
+
+<button class="btn btn-primary full" onclick="startQuiz()">
+Start Quiz
+</button>
+
+<button
+    class="btn btn-secondary full"
+    style="margin-top:10px"
+    onclick="goHome()">
+Back
+</button>
+
+</div>
+</div>
+</section>
+
+
+<!-- TEACHER LOGIN -->
+<section id="teacherLoginScreen" class="screen hidden">
+<div class="container">
+<div class="card login-card">
+<h1 class="center">Teacher Login</h1>
+<p class="subtitle">Sign in to your own teacher account.</p>
+<div id="teacherLoginError" class="error hidden"></div>
+
+<div class="form-group">
+<label>Username</label>
+<input type="text" id="teacherUsername" placeholder="Enter username" autocomplete="username">
+</div>
+
+<div class="form-group">
+<label>Password</label>
+<input type="password" id="teacherPassword" placeholder="Enter password" autocomplete="current-password">
+</div>
+
+<button class="btn btn-dark full" onclick="teacherLogin()">Sign In</button>
+<button class="btn btn-primary full" style="margin-top:10px" onclick="openTeacherRegister()">Create Teacher Account</button>
+<button class="btn btn-secondary full" style="margin-top:10px" onclick="goHome()">Back</button>
+</div>
+</div>
+</section>
+
+<!-- TEACHER REGISTRATION -->
+<section id="teacherRegisterScreen" class="screen hidden">
+<div class="container">
+<div class="card login-card">
+<h1 class="center">Create Teacher Account</h1>
+<p class="subtitle">Each teacher gets a separate dashboard, quizzes, and student records.</p>
+<div id="teacherRegisterError" class="error hidden"></div>
+<div id="teacherRegisterSuccess" class="success-message hidden"></div>
+
+<div class="form-group">
+<label>Full Name</label>
+<input type="text" id="registerTeacherName" placeholder="Example: Juan Dela Cruz">
+</div>
+
+<div class="form-group">
+<label>Username</label>
+<input type="text" id="registerTeacherUsername" placeholder="Choose a username" autocomplete="username">
+</div>
+
+<div class="form-group">
+<label>Password</label>
+<input type="password" id="registerTeacherPassword" placeholder="Choose a password" autocomplete="new-password">
+</div>
+
+<div class="form-group">
+<label>Confirm Password</label>
+<input type="password" id="registerTeacherPassword2" placeholder="Repeat password" autocomplete="new-password">
+</div>
+
+<button class="btn btn-success full" onclick="registerTeacher()">Create Account</button>
+<button class="btn btn-secondary full" style="margin-top:10px" onclick="openTeacherLogin()">Back to Login</button>
+</div>
+</div>
+</section>
+
+
+<!-- QUIZ -->
+<section id="quizScreen" class="hidden">
+
+<div class="quiz-topbar">
+<div class="quiz-topbar-inner">
+
+<div>
+<strong id="quizHeaderTitle">Quiz</strong>
+<div id="quizStudentName" class="student-label"></div>
+</div>
+
+<div class="security-counter">
+Security Events:
+<span id="securityCount">0</span>/3
+</div>
+
+</div>
+</div>
+
+<div class="screen">
+<div class="container">
+
+<div class="card">
+
+<h2 id="quizTitleDisplay">Quiz</h2>
+
+<p id="quizInstructionsDisplay" class="small"></p>
+
+<div class="progress-container">
+<div id="progressBar" class="progress-bar"></div>
+</div>
+
+<div id="progressText" class="small">
+0 questions answered
+</div>
+
+</div>
+
+<form id="quizForm"></form>
+
+<div class="card center">
+<button
+    type="button"
+    class="btn btn-success"
+    onclick="submitQuiz(false)">
+Submit Quiz
+</button>
+</div>
+
+</div>
+</div>
+</section>
+
+
+<!-- RESULT -->
+<section id="resultScreen" class="screen hidden">
+<div class="container">
+
+<div class="card">
+
+<h1 class="center">Quiz Completed</h1>
+
+<div id="resultScore" class="score">0%</div>
+
+<h2 id="resultMessage" class="center"></h2>
+
+<div id="resultInformation"></div>
+
+<button class="btn btn-primary full" onclick="goHome()">
+Return Home
+</button>
+
+</div>
+</div>
+</section>
+
+
+<!-- TEACHER DASHBOARD -->
+<section id="adminScreen" class="screen hidden">
+<div class="container">
+
+<div class="card">
+
+<div class="admin-header">
+
+<div>
+<h1>Teacher Dashboard</h1>
+<div class="small">
+Signed in as <strong id="teacherDisplay"></strong>
+</div>
+</div>
+
+<button class="btn btn-danger" onclick="teacherLogout()">
+Log Out
+</button>
+
+</div>
+
+<div class="admin-nav">
+
+<button
+    id="recordsButton"
+    class="btn btn-primary"
+    onclick="showAdminSection('records')">
+Student Records
+</button>
+
+<button
+    id="editorButton"
+    class="btn btn-secondary"
+    onclick="showAdminSection('editor')">
+Quiz Editor
+</button>
+
+</div>
+
+<div id="adminStatus" class="success-message hidden"></div>
+<div id="googleSheetsStatus" class="small" style="margin-bottom:15px"></div>
+
+<h2>Select Quiz</h2>
+
+<div id="adminQuizTabs" class="quiz-tabs"></div>
+<div class="button-row" style="margin-bottom:20px">
+    <button class="btn btn-primary" type="button" onclick="addQuizNumber()">
+        + Add Quiz Number
+    </button>
+</div>
+
+<div style="
+background:#eff6ff;
+border:1px solid #bfdbfe;
+padding:15px;
+border-radius:12px;
+margin-bottom:20px;
+">
+
+<strong id="selectedQuizName">Quiz 1</strong>
+
+<div
+    id="selectedQuizCode"
+    class="small"
+    style="margin-top:5px">
+</div>
+
+</div>
+
+
+<!-- RECORDS -->
+<div id="recordsSection">
+
+<div class="stats">
+
+<div class="stat">
+<div class="small">Submissions</div>
+<div id="statSubmissions" class="stat-number">0</div>
+</div>
+
+<div class="stat">
+<div class="small">Students</div>
+<div id="statStudents" class="stat-number">0</div>
+</div>
+
+<div class="stat">
+<div class="small">Sections</div>
+<div id="statSections" class="stat-number">0</div>
+</div>
+
+<div class="stat">
+<div class="small">Average</div>
+<div id="statAverage" class="stat-number">0%</div>
+</div>
+
+<div class="stat">
+<div class="small">Security Events</div>
+<div id="statSecurity" class="stat-number">0</div>
+</div>
+
+</div>
+
+<div class="section-filter">
+
+<input
+    type="text"
+    id="recordSearch"
+    placeholder="Search student or class/section..."
+    oninput="renderRecords()">
+
+<select id="sectionFilter" onchange="renderRecords()">
+<option value="">All Classes / Sections</option>
+</select>
+
+</div>
+
+<div class="button-row" style="margin-bottom:20px">
+
+<button class="btn btn-secondary" onclick="refreshRecordsFromGoogleSheets()">
+Refresh Records
+</button>
+
+<button class="btn btn-secondary" onclick="exportRecords()">
+Export
+</button>
+
+<button class="btn btn-danger" onclick="clearRecords()">
+ Delete All Records
+</button>
+
+</div>
+
+<div class="card" style="background:#f0fdf4;border:1px solid #bbf7d0;margin-bottom:20px"><div style="display:flex;justify-content:space-between;align-items:center"><strong>🔴 LIVE STUDENTS</strong><span id="liveMonitorStatus" class="small">Monitoring...</span></div><div id="liveStudentsContainer" style="margin-top:10px"></div></div>
+
+<div id="recordsContainer"></div>
+
+</div>
+
+
+<!-- EDITOR -->
+<div id="editorSection" class="hidden">
+
+<div class="editor-layout">
+
+<div>
+
+<div class="form-group">
+<label>Quiz Title</label>
+<input
+    type="text"
+    id="quizTitleInput"
+    placeholder="Example: Biology Chapter 1">
+</div>
+
+<div class="form-group">
+<label>Quiz Access Code</label>
+<input
+    type="text"
+    id="quizCodeInput"
+    maxlength="40"
+    placeholder="Example: BIO101">
+</div>
+
+<div class="form-group">
+<label>Instructions</label>
+<textarea
+    id="quizInstructionsInput"
+    placeholder="Enter instructions..."></textarea>
+</div>
+
+<div class="form-group">
+<label>Quiz Timer (minutes)</label>
+<input
+    type="number"
+    id="quizTimerInput"
+    min="0"
+    step="1"
+    placeholder="0 = no time limit">
+<div class="small" style="margin-top:6px">Set 0 for no timer. Example: 30 = 30 minutes.</div>
+</div>
+
+</div>
+
+<div>
+
+<div class="card"
+style="background:#f8fafc;border:1px solid #e2e8f0">
+
+<h3>Question Types</h3>
+
+<ul class="small">
+<li><strong>Multiple Choice:</strong> one correct option.</li>
+<li><strong>Identification:</strong> text answer.</li>
+<li><strong>Enumeration:</strong> multiple required answers.</li>
+<li>Identification can accept multiple valid answers.</li>
+<li>Enumeration can have more possible correct answers than student answer boxes.</li>
+<li>Enumeration: each matched answer = 1 point.</li>
+<li>Enumeration can be checked in any order or in order.</li>
+<li>Leaving fullscreen/focus can create a security event.</li>
+</ul>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="button-row">
+
+<button class="btn btn-success" onclick="saveQuiz()">
+Save Quiz Online
+</button>
+
+<button class="btn btn-warning" onclick="toggleCurrentQuizPublished()">
+Publish / Unpublish Quiz
+</button>
+<button class="btn btn-warning" onclick="publishAllQuizzes()">
+Publish All My Quizzes
+</button>
+
+<button class="btn btn-secondary" onclick="refreshQuizData()">
+Refresh My Quizzes
+</button>
+
+<button class="btn btn-primary" onclick="addQuestion()">
++ Add Question
+</button>
+
+<button class="btn btn-secondary" onclick="exportQuiz()">
+Export Quiz
+</button>
+
+<button
+    class="btn btn-secondary"
+    onclick="document.getElementById('importFile').click()">
+Import Quiz
+</button>
+
+<input
+    type="file"
+    id="importFile"
+    class="hidden"
+    accept=".json"
+    onchange="importQuiz(event)">
+
+</div>
+
+<hr style="border:0;border-top:1px solid #e2e8f0;margin:25px 0">
+
+<h2>Questions</h2>
+
+<div id="questionEditors"></div>
+
+</div>
+
+</div>
+</div>
+</section>
+
+
+<!-- RECORD DETAIL -->
+<div id="recordDetail" class="detail-overlay hidden">
+
+<div class="container">
+
+<div class="card">
+
+<div style="
+display:flex;
+justify-content:space-between;
+gap:15px;
+align-items:flex-start;
+">
+
+<div>
+<h2 id="detailName">Student</h2>
+<div id="detailMeta" class="small"></div>
+</div>
+
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<button class="btn btn-danger" onclick="deleteCurrentRecord()">
+Delete Record
+</button>
+
+<button class="btn btn-secondary" onclick="closeRecordDetail()">
+Close
+</button>
+</div>
+
+</div>
+
+<hr style="border:0;border-top:1px solid #e2e8f0;margin:20px 0">
+
+<div id="detailAnswers"></div>
+
+</div>
+</div>
+</div>
+
+
+<!-- SECURITY WARNING -->
+<div id="securityWarning" class="security-warning hidden"></div>
+
+
+<script>
+
+/* =========================================================
+   MULTI-TEACHER BACKEND
+   Uses Google Apps Script as the central database.
+   No Google Sheet is required for the quiz/record storage.
+========================================================= */
+const API_URL = "https://script.google.com/macros/s/AKfycby-NyyS95DKCEQkqhsJU6QUOLHETxG-thDLDM38ea94_lXv34oLVTm4_9YM72b9Sxcq/exec";
+
+const QUIZ_KEY = "classquiz_pro_v4_quizzes";
+const RECORD_KEY = "classquiz_pro_v4_records";
+const SESSION_KEY = "classquiz_pro_v4_teacher_token";
+
+let currentTeacher = null;
+let currentStudentTeacherId = null;
+let publishedQuizzes = [];
+
+/* =========================================================
+   GOOGLE SHEETS CONNECTION
+   Paste your deployed Google Apps Script Web App URL here.
+========================================================= */
+const GOOGLE_SHEETS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzPWcxEf73GXPD1DPaC-VFAlnAEnsqrnvzUSG1HnlNx5J3zf0xlunldq_3nzUlUZxKtMw/exec";
+
+
+let quizzes = {};
+let records = {};
+
+let currentQuizNumber = 1;
+let currentStudentQuiz = null;
+
+let currentQuiz = null;
+let currentStudent = "";
+let currentStudentEmail = "";
+let currentStudentSection = "";
+let liveMonitorInterval = null;
+let activitySyncTimer = null;
+
+let answers = [];
+let securityEvents = 0;
+
+let quizStarted = false;
+let quizSubmitted = false;
+let submitting = false;
+
+let attemptId = null;
+let currentRecordId = null;
+let quizTimerInterval = null;
+let quizTimeLeftSeconds = 0;
+let quizStartedAt = null;
+
+
+/* =========================================================
+   BASIC HELPERS
+========================================================= */
+
+function $(id){
+    return document.getElementById(id);
+}
+
+function clone(value){
+    return JSON.parse(JSON.stringify(value));
+}
+
+function generateId(prefix="id"){
+    if(window.crypto && crypto.randomUUID){
+        return prefix + "_" + crypto.randomUUID();
+    }
+
+    return prefix + "_" +
+        Date.now() + "_" +
+        Math.random().toString(36).slice(2);
+}
+
+function escapeHTML(value){
+    return String(value ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+}
+
+function normalizeAnswer(value){
+    return String(value ?? "")
+        .trim()
+        .replace(/\s+/g," ")
+        .toLowerCase();
+}
+
+function formatDate(value){
+    const date = new Date(value);
+
+    if(Number.isNaN(date.getTime())){
+        return String(value || "");
+    }
+
+    return date.toLocaleString();
+}
+
+function showScreen(id){
+
+    [
+        "homeScreen",
+        "studentScreen",
+        "teacherLoginScreen",
+        "quizScreen",
+        "resultScreen",
+        "adminScreen"
+    ].forEach(screen=>{
+        $(screen).classList.add("hidden");
+    });
+
+    $(id).classList.remove("hidden");
+}
+
+
+/* =========================================================
+   QUIZ DATA
+========================================================= */
+
+function createQuestion(type="multiple"){
+
+    if(type === "identification"){
+        return {
+            id:generateId("question"),
+            type:"identification",
+            question:"New identification question",
+            acceptedAnswers:["Correct answer"]
+        };
+    }
+
+    if(type === "enumeration"){
+        return {
+            id:generateId("question"),
+            type:"enumeration",
+            question:"New enumeration question",
+            requiredAnswers:[
+                "Freshwater",
+                "Saltwater",
+                "Brackish water",
+                "Groundwater",
+                "Surface water"
+            ],
+            studentAnswerCount:2,
+            orderMode:"any"
+        };
+    }
+
+    return {
+        id:generateId("question"),
+        type:"multiple",
+        question:"New multiple choice question",
+        options:[
+            "Choice A",
+            "Choice B",
+            "Choice C",
+            "Choice D"
+        ],
+        answer:0
+    };
+}
+
+function createQuiz(number){
+
+    return {
+        id:number,
+
+        title:"Quiz " + number,
+
+        code:"QUIZ" + number,
+        published:false,
+
+        instructions:
+            "Read each question carefully and answer all questions.",
+
+        timerMinutes:0,
+
+        questions:[
+            {
+                id:generateId("question"),
+                type:"multiple",
+                question:"What is the capital of the Philippines?",
+                options:[
+                    "Manila",
+                    "Cebu",
+                    "Davao",
+                    "Baguio"
+                ],
+                answer:0
+            },
+            {
+                id:generateId("question"),
+                type:"identification",
+                question:"What is the largest planet in our solar system?",
+                acceptedAnswers:[
+                    "Jupiter"
+                ]
+            },
+            {
+                id:generateId("question"),
+                type:"enumeration",
+                question:
+                    "Enumerate the three primary colors.",
+                requiredAnswers:[
+                    "Red",
+                    "Blue",
+                    "Yellow"
+                ],
+                studentAnswerCount:2,
+                orderMode:"any"
+            }
+        ]
+    };
+}
+
+function getQuizNumbers(){
+    const numbers = Object.keys(quizzes || {})
+        .map(Number)
+        .filter(Number.isFinite);
+    return [...new Set(numbers)].sort((a,b)=>a-b);
+}
+
+function getNextQuizNumber(){
+    const numbers = getQuizNumbers();
+    return numbers.length ? Math.max(...numbers) + 1 : 1;
+}
+
+function addQuizNumber(){
+    if(!isTeacher()){
+        openTeacherLogin();
+        return;
+    }
+
+    const number = getNextQuizNumber();
+    quizzes[number] = createQuiz(number);
+    records[number] = [];
+    saveQuizzes();
+    saveRecords();
+
+    renderAdminQuizTabs();
+    selectAdminQuiz(number);
+    showAdminStatus("Quiz " + number + " created. Edit it, save it, then publish when ready.");
+}
+
+function createDefaultQuizzes(){
+
+    const data = {};
+
+    for(let i=1;i<=10;i++){
+        data[i] = createQuiz(i);
+    }
+
+    return data;
+}
+
+function repairQuestion(question){
+
+    if(!question.id){
+        question.id = generateId("question");
+    }
+
+    if(!question.type){
+
+        if(
+            Array.isArray(question.options) &&
+            typeof question.answer !== "undefined"
+        ){
+            question.type = "multiple";
+        }else{
+            question.type = "multiple";
+        }
+    }
+
+    if(question.type === "multiple"){
+
+        if(!Array.isArray(question.options)){
+            question.options = [
+                "Choice A",
+                "Choice B",
+                "Choice C",
+                "Choice D"
+            ];
+        }
+
+        if(typeof question.answer !== "number"){
+            question.answer = 0;
+        }
+    }
+
+    if(question.type === "identification"){
+
+        if(!Array.isArray(question.acceptedAnswers)){
+            question.acceptedAnswers = [
+                question.answer || "Correct answer"
+            ];
+        }
+
+        delete question.options;
+        delete question.answer;
+    }
+
+    if(question.type === "enumeration"){
+
+        if(!Array.isArray(question.requiredAnswers)){
+            question.requiredAnswers = [
+                "Answer 1",
+                "Answer 2"
+            ];
+        }
+
+        question.requiredAnswers =
+            question.requiredAnswers
+                .map(value=>String(value ?? ""))
+                .filter(value=>value.trim());
+
+        if(!question.requiredAnswers.length){
+            question.requiredAnswers = ["Answer 1"];
+        }
+
+        const defaultStudentCount =
+            question.requiredAnswers.length;
+
+        question.studentAnswerCount =
+            Math.max(
+                1,
+                Math.min(
+                    Number(question.studentAnswerCount) || defaultStudentCount,
+                    question.requiredAnswers.length
+                )
+            );
+
+        if(question.orderMode !== "in-order"){
+            question.orderMode = "any";
+        }
+
+        delete question.options;
+        delete question.answer;
+    }
+
+    return question;
+}
+
+function repairQuiz(quiz,number){
+
+    quiz.id = number;
+
+    if(!quiz.title){
+        quiz.title = "Quiz " + number;
+    }
+
+    if(!quiz.code){
+        quiz.code = "QUIZ" + number;
+    }
+
+    if(typeof quiz.published !== "boolean"){
+        quiz.published = false;
+    }
+
+    if(!quiz.instructions){
+        quiz.instructions = "";
+    }
+
+    quiz.timerMinutes = Math.max(0, Math.floor(Number(quiz.timerMinutes) || 0));
+
+    if(!Array.isArray(quiz.questions)){
+        quiz.questions = [];
+    }
+
+    quiz.questions.forEach(repairQuestion);
+
+    return quiz;
+}
+
+function loadQuizzes(){
+
+    try{
+
+        const saved = localStorage.getItem(QUIZ_KEY);
+
+        if(!saved){
+
+            const defaults = createDefaultQuizzes();
+
+            localStorage.setItem(
+                QUIZ_KEY,
+                JSON.stringify(defaults)
+            );
+
+            return defaults;
+        }
+
+        const parsed = JSON.parse(saved);
+        const defaults = createDefaultQuizzes();
+
+        for(let i=1;i<=10;i++){
+
+            if(!parsed[i]){
+                parsed[i] = defaults[i];
+            }
+
+            parsed[i] = repairQuiz(parsed[i],i);
+        }
+
+        return parsed;
+
+    }catch(error){
+
+        return createDefaultQuizzes();
+    }
+}
+
+function saveQuizzes(){
+
+    localStorage.setItem(
+        QUIZ_KEY,
+        JSON.stringify(quizzes)
+    );
+}
+
+/* =========================================================
+   REMOTE QUIZ DATA — GOOGLE SHEETS
+   The quiz definitions are stored centrally so the teacher
+   can edit them online and every student sees the same data.
+========================================================= */
+
+
+async function apiRequest(action, data = {}, method = "POST"){
+    const payload = {action, ...data};
+    if(method === "GET"){
+        const qs = new URLSearchParams(payload).toString();
+        const response = await fetch(API_URL + "?" + qs);
+        return await response.json();
+    }
+    const response = await fetch(API_URL, {
+        method:"POST",
+        body:JSON.stringify(payload)
+    });
+    return await response.json();
+}
+
+async function loadPublishedQuizzes(){
+    try{
+        const data = await apiRequest("getPublishedQuizzes", {}, "GET");
+        publishedQuizzes = data && data.ok && Array.isArray(data.quizzes)
+            ? data.quizzes
+            : [];
+    }catch(error){
+        console.error(error);
+        publishedQuizzes = [];
+    }
+    renderHomeQuizzes();
+}
+
+async function loadTeacherData(){
+    const token = sessionStorage.getItem(SESSION_KEY);
+    if(!token) return false;
+
+    try{
+        const data = await apiRequest("getTeacherData", {token}, "GET");
+        if(!data || !data.ok) return false;
+
+        currentTeacher = data.teacher;
+        quizzes = {};
+        records = {};
+
+        (data.quizzes || []).forEach(q=>{
+            quizzes[q.id] = repairQuiz(q, q.id);
+        });
+        (data.records || []).forEach(r=>{
+            if(!records[r.quizNumber]) records[r.quizNumber] = [];
+            records[r.quizNumber].push(r);
+        });
+
+        for(let i=1;i<=10;i++){
+            if(!quizzes[i]) quizzes[i] = createQuiz(i);
+            if(!records[i]) records[i] = [];
+        }
+
+        Object.keys(quizzes).forEach(key=>{
+            const number = Number(key);
+            if(Number.isFinite(number) && !records[number]){
+                records[number] = [];
+            }
+        });
+
+        saveQuizzes();
+        saveRecords();
+        return true;
+    }catch(error){
+        console.error(error);
+        return false;
+    }
+}
+
+async function saveQuizToGoogleSheets(quiz){
+    if(!isTeacher()) return false;
+    try{
+        const data = await apiRequest("saveQuiz", {
+            token: sessionStorage.getItem(SESSION_KEY),
+            quiz: clone(quiz)
+        });
+        return !!(data && data.ok);
+    }catch(error){
+        console.error(error);
+        return false;
+    }
+}
+
+function loadQuizzesFromGoogleSheets(onComplete){
+    loadTeacherData().then(ok=>onComplete(ok ? quizzes : null));
+}
+
+function syncQuizzesFromGoogleSheets(onComplete){
+    loadTeacherData().then(ok=>onComplete(!!ok));
+}
+
+function getQuiz(number){
+
+    if(!quizzes[number]){
+        quizzes[number] = createQuiz(number);
+        if(!records[number]) records[number] = [];
+        saveQuizzes();
+    }
+
+    quizzes[number] = repairQuiz(quizzes[number],number);
+    return quizzes[number];
+}
+
+function loadRecords(){
+
+    try{
+
+        const saved = localStorage.getItem(RECORD_KEY);
+
+        return saved ? JSON.parse(saved) : {};
+
+    }catch(error){
+
+        return {};
+    }
+}
+
+function saveRecords(){
+
+    localStorage.setItem(
+        RECORD_KEY,
+        JSON.stringify(records)
+    );
+}
+
+function getRecords(number){
+
+    if(!Array.isArray(records[number])){
+        records[number] = [];
+    }
+
+    return records[number];
+}
+
+
+/* =========================================================
+   HOME
+========================================================= */
+
+
+function renderHomeQuizzes(){
+    const grid = $("homeQuizGrid");
+    if(!grid) return;
+
+    grid.innerHTML = "";
+
+    if(!publishedQuizzes.length){
+        grid.innerHTML = `
+            <div class="card center" style="grid-column:1/-1;background:#f8fafc">
+                <h3>No Published Quizzes</h3>
+                <p class="small">Your teacher has not published a quiz yet. Refresh this page after your teacher publishes one.</p>
+                <button class="btn btn-primary" onclick="loadPublishedQuizzes()">Refresh Published Quizzes</button>
+            </div>`;
+        return;
+    }
+
+    publishedQuizzes.forEach(item=>{
+        const card = document.createElement("div");
+        card.className = "quiz-card";
+        card.onclick = ()=>selectQuiz(item);
+
+        const quiz = item.quiz;
+        const typeCounts = {multiple:0, identification:0, enumeration:0};
+        (quiz.questions || []).forEach(q=>{
+            if(typeCounts[q.type] !== undefined) typeCounts[q.type]++;
+        });
+
+        card.innerHTML = `
+            <h3>${escapeHTML(quiz.title)}</h3>
+            <p><strong>Teacher:</strong> ${escapeHTML(item.teacherName || item.username || "Teacher")}</p>
+            <p>${quiz.questions.length} question(s)</p>
+            <p><strong>Time:</strong> ${Number(quiz.timerMinutes) > 0 ? Number(quiz.timerMinutes) + " minute(s)" : "No time limit"}</p>
+            <p style="margin-top:8px">
+                <span class="badge badge-blue">${typeCounts.multiple} MC</span>
+                <span class="badge badge-green">${typeCounts.identification} ID</span>
+                <span class="badge badge-yellow">${typeCounts.enumeration} Enum</span>
+            </p>
+            <p class="small" style="margin-top:10px">Published • Code required</p>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+/* =========================================================
+   STUDENT LOGIN
+========================================================= */
+
+function selectQuiz(item){
+    currentStudentTeacherId = item.teacherId;
+    currentStudentQuiz = Number(item.quiz.id);
+    currentQuiz = clone(item.quiz);
+
+    $("studentQuizTitle").textContent = currentQuiz.title;
+    $("studentName").value = "";
+    $("studentEmail").value = "";
+    $("studentSection").value = "";
+    $("studentQuizCode").value = "";
+    $("studentError").classList.add("hidden");
+
+    showScreen("studentScreen");
+    setTimeout(()=>$("studentName").focus(),100);
+}
+
+async function startQuiz(){
+
+    const name =
+        $("studentName").value.trim();
+
+    const email =
+        gqNormalizeEmail($("studentEmail") ? $("studentEmail").value : "");
+
+    const section =
+        $("studentSection").value.trim();
+
+    const enteredCode =
+        $("studentQuizCode")
+            .value
+            .trim()
+            .toUpperCase();
+
+    const quiz =
+        currentQuiz || getQuiz(currentStudentQuiz);
+
+    const error =
+        $("studentError");
+
+    error.classList.add("hidden");
+
+    if(!name){
+
+        error.textContent =
+            "Please enter your name.";
+
+        error.classList.remove("hidden");
+
+        return;
+    }
+
+    if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+
+        error.textContent =
+            "Please enter a valid email address.";
+        error.classList.remove("hidden");
+        return;
+    }
+
+    if(!section){
+
+        error.textContent =
+            "Please enter your class / section.";
+
+        error.classList.remove("hidden");
+
+        return;
+    }
+
+    if(!enteredCode){
+
+        error.textContent =
+            "Please enter the quiz access code.";
+
+        error.classList.remove("hidden");
+
+        return;
+    }
+
+    if(
+        enteredCode !==
+        String(quiz.code)
+            .trim()
+            .toUpperCase()
+    ){
+
+        error.textContent =
+            "Incorrect quiz access code.";
+
+        error.classList.remove("hidden");
+
+        return;
+    }
+
+    const guard = await gqCheckBeforeStart(email, quiz.id);
+    if(!guard.ok){
+        error.textContent = guard.message;
+        error.classList.remove("hidden");
+        return;
+    }
+
+    window.gqStudentEmail = email;
+    const localExistingAttempt = gqGetAttempt(email, currentStudentQuiz);
+    const attemptNumber = guard.resume
+        ? Number(localExistingAttempt?.attemptNumber || 1)
+        : Number(localExistingAttempt?.attemptNumber || 0) + 1;
+
+    if(!quiz.questions.length){
+
+        error.textContent =
+            "This quiz has no questions yet.";
+
+        error.classList.remove("hidden");
+
+        return;
+    }
+
+    currentStudent = name;
+    currentStudentEmail = email;
+    currentStudentSection = section;
+
+    window.gqStudentEmail = email;
+    currentQuiz = clone(quiz);
+
+    if(guard.resume && localExistingAttempt){
+        attemptId = localExistingAttempt.attemptId;
+    }else{
+        gqStartLocalAttempt(email, currentStudentQuiz, attemptNumber);
+        attemptId = gqGetAttempt(email, currentStudentQuiz)?.attemptId || attemptId;
+    }
+
+    gqStartHeartbeat();
+
+    attemptId = generateId("attempt");
+
+    answers =
+        new Array(currentQuiz.questions.length)
+        .fill(null);
+
+    securityEvents = 0;
+
+    quizStarted = true;
+    quizSubmitted = false;
+    submitting = false;
+    quizStartedAt = new Date().toISOString();
+    currentRecordId = generateId("record");
+
+    // Create the teacher-dashboard record immediately.
+    // It remains visible even if the student never submits the quiz.
+    const startRecord = {
+        id:currentRecordId,
+        attemptId,
+        teacherId:currentStudentTeacherId,
+        quizNumber:currentStudentQuiz,
+        quizTitle:currentQuiz.title,
+        student:currentStudent,
+        email:currentStudentEmail,
+        section:currentStudentSection,
+        correct:0,
+        total:currentQuiz.questions.reduce((sum,q)=>sum + getQuestionScore(q,null).maxPoints,0),
+        percentage:0,
+        securityEvents:0,
+        automatic:false,
+        status:"In Progress",
+        submissionType:"Started",
+        startedAt:quizStartedAt,
+        submittedAt:null,
+        lastAction:"Started quiz",
+        lastActivityAt:quizStartedAt,
+        answeredCount:0,
+        currentQuestion:1,
+        detailedAnswers:currentQuiz.questions.map((question,index)=>({
+            number:index+1, type:question.type, question:question.question,
+            studentAnswer:null, selected:null, correct:null, isCorrect:false
+        }))
+    };
+    records[currentStudentQuiz] = records[currentStudentQuiz] || [];
+    records[currentStudentQuiz] = records[currentStudentQuiz].filter(r=>r.id !== currentRecordId);
+    records[currentStudentQuiz].push(startRecord);
+    saveRecords();
+    sendToGoogleSheets(startRecord, "save").then(response=>{
+        if(!response || !response.ok) console.error("Could not create in-progress record", response);
+    });
+
+    renderQuiz();
+
+    showScreen("quizScreen");
+
+    $("securityCount").textContent =
+        securityEvents;
+
+    enterFullscreen();
+    startQuizTimer();
+}
+
+
+/* =========================================================
+   STUDENT QUIZ RENDERING
+========================================================= */
+
+function renderQuiz(){
+
+    $("quizHeaderTitle").textContent =
+        currentQuiz.title;
+
+    $("quizStudentName").textContent =
+        "Student: " +
+        currentStudent +
+        " | Class/Section: " +
+        currentStudentSection +
+        (window.gqStudentEmail ? " | Email: " + window.gqStudentEmail : "") +
+        (gqGetAttempt(window.gqStudentEmail, currentStudentQuiz)
+            ? " | Attempt " + gqGetAttempt(window.gqStudentEmail, currentStudentQuiz).attemptNumber + "/2"
+            : "");
+
+    $("quizTitleDisplay").textContent =
+        currentQuiz.title;
+
+    $("quizInstructionsDisplay").textContent =
+        currentQuiz.instructions || "";
+
+    const form = $("quizForm");
+
+    form.innerHTML = "";
+
+    currentQuiz.questions.forEach(
+        (question,index)=>{
+
+        const card =
+            document.createElement("div");
+
+        card.className =
+            "card question-card";
+
+        const typeName =
+            getQuestionTypeName(question.type);
+
+        card.innerHTML = `
+
+            <div class="question-number">
+                Question ${index + 1}
+            </div>
+
+            <div class="question-type">
+                ${typeName}
+            </div>
+
+            <div class="question-text"></div>
+
+            <div class="answer-area"></div>
+        `;
+
+        card.querySelector(".question-text")
+            .textContent =
+            question.question;
+
+        const answerArea =
+            card.querySelector(".answer-area");
+
+        if(question.type === "multiple"){
+
+            renderMultipleChoiceStudent(
+                answerArea,
+                question,
+                index
+            );
+
+        }else if(
+            question.type === "identification"
+        ){
+
+            renderIdentificationStudent(
+                answerArea,
+                question,
+                index
+            );
+
+        }else if(
+            question.type === "enumeration"
+        ){
+
+            renderEnumerationStudent(
+                answerArea,
+                question,
+                index
+            );
+        }
+
+        form.appendChild(card);
+    });
+
+    updateProgress();
+}
+
+function getQuestionTypeName(type){
+
+    if(type === "identification"){
+        return "Identification";
+    }
+
+    if(type === "enumeration"){
+        return "Enumeration";
+    }
+
+    return "Multiple Choice";
+}
+
+function renderMultipleChoiceStudent(
+    container,
+    question,
+    index
+){
+
+    question.options.forEach(
+        (option,optionIndex)=>{
+
+        const label =
+            document.createElement("label");
+
+        label.className =
+            "answer-option";
+
+        if(
+            answers[index] === optionIndex
+        ){
+            label.classList.add("selected");
+        }
+
+        const radio =
+            document.createElement("input");
+
+        radio.type = "radio";
+        radio.name = "question_" + index;
+        radio.value = optionIndex;
+
+        radio.checked =
+            answers[index] === optionIndex;
+
+        radio.addEventListener(
+            "change",
+            ()=>{
+
+                answers[index] =
+                    optionIndex;
+
+                updateMultipleChoiceOptions(index);
+
+                updateProgress();
+                syncInProgressActivity("Answered Question " + (index + 1), index + 1);
+            }
+        );
+
+        const span =
+            document.createElement("span");
+
+        span.textContent = option;
+
+        label.appendChild(radio);
+        label.appendChild(span);
+
+        container.appendChild(label);
+    });
+}
+
+function updateMultipleChoiceOptions(index){
+
+    document
+        .querySelectorAll(
+            `input[name="question_${index}"]`
+        )
+        .forEach(input=>{
+
+            const option =
+                input.closest(".answer-option");
+
+            if(option){
+
+                option.classList.toggle(
+                    "selected",
+                    input.checked
+                );
+            }
+        });
+}
+
+function renderIdentificationStudent(
+    container,
+    question,
+    index
+){
+
+    const wrapper =
+        document.createElement("div");
+
+    wrapper.className =
+        "identification-answer";
+
+    wrapper.innerHTML = `
+
+        <label>
+            Your Answer
+        </label>
+
+        <input
+            type="text"
+            id="identification_${index}"
+            placeholder="Type your answer..."
+            autocomplete="off">
+    `;
+
+    container.appendChild(wrapper);
+
+    const input =
+        wrapper.querySelector("input");
+
+    input.value =
+        answers[index] || "";
+
+    input.addEventListener(
+        "input",
+        ()=>{
+
+            answers[index] =
+                input.value.trim() || null;
+
+            updateProgress();
+            syncInProgressActivity("Updated Question " + (index + 1), index + 1);
+        }
+    );
+}
+
+function renderEnumerationStudent(
+    container,
+    question,
+    index
+){
+
+    const wrapper =
+        document.createElement("div");
+
+    wrapper.className =
+        "enumeration-answer";
+
+    const count =
+        Math.max(
+            1,
+            Number(question.studentAnswerCount) ||
+            question.requiredAnswers.length
+        );
+
+    const orderText =
+        question.orderMode === "in-order"
+            ? "Enter the answers in the required order."
+            : "Order does not matter.";
+
+    let html = `
+        <div class="small" style="margin-bottom:10px">
+            Enter ${count} answer(s). Each correct answer is worth 1 point.
+            ${orderText}
+        </div>
+    `;
+
+    for(let i=0;i<count;i++){
+
+        html += `
+            <div class="enum-row">
+
+                <div class="enum-number">
+                    ${i + 1}
+                </div>
+
+                <input
+                    type="text"
+                    class="enum-input"
+                    data-question="${index}"
+                    data-position="${i}"
+                    placeholder="Answer ${i + 1}"
+                    autocomplete="off">
+
+            </div>
+        `;
+    }
+
+    wrapper.innerHTML = html;
+
+    container.appendChild(wrapper);
+
+    const inputs =
+        wrapper.querySelectorAll(".enum-input");
+
+    const saved =
+        Array.isArray(answers[index])
+            ? answers[index]
+            : [];
+
+    inputs.forEach((input,i)=>{
+
+        input.value =
+            saved[i] || "";
+
+        input.addEventListener(
+            "input",
+            ()=>{
+
+                const values =
+                    [...inputs].map(
+                        item=>item.value.trim()
+                    );
+
+                answers[index] =
+                    values.some(Boolean)
+                        ? values
+                        : null;
+
+                updateProgress();
+            }
+        );
+    });
+}
+
+
+/* =========================================================
+   ANSWER CHECKING
+========================================================= */
+
+function getEnumerationResult(question, studentAnswer){
+    const required = (question.requiredAnswers || [])
+        .map(normalizeAnswer)
+        .filter(Boolean);
+
+    const provided = Array.isArray(studentAnswer)
+        ? studentAnswer.map(normalizeAnswer).filter(Boolean)
+        : [];
+
+    if(!required.length){
+        return {
+            points:0,
+            maxPoints:0,
+            isCorrect:false,
+            matched:0,
+            provided
+        };
+    }
+
+    const inOrder = question.orderMode === "in-order";
+    let matched = 0;
+
+    if(inOrder){
+        // In-order mode: each answer gets 1 point only when it matches
+        // the required answer at the same position.
+        for(let i=0; i<Math.min(provided.length, required.length); i++){
+            if(provided[i] && provided[i] === required[i]){
+                matched++;
+            }
+        }
+    }else{
+        // Any-order mode: each correct required answer can be earned once.
+        const used = new Set();
+        provided.forEach(answer=>{
+            if(!answer) return;
+            const matchIndex = required.findIndex(
+                (correctAnswer, i)=>
+                    !used.has(i) && correctAnswer === answer
+            );
+            if(matchIndex !== -1){
+                used.add(matchIndex);
+                matched++;
+            }
+        });
+    }
+
+    const maxPoints =
+        Math.max(
+            1,
+            Number(question.studentAnswerCount) ||
+            required.length
+        );
+
+    return {
+        points:Math.min(matched, maxPoints),
+        maxPoints,
+        isCorrect:matched === maxPoints,
+        matched,
+        provided
+    };
+}
+
+function checkQuestionAnswer(question, studentAnswer){
+    if(question.type === "enumeration"){
+        return getEnumerationResult(question, studentAnswer).isCorrect;
+    }
+
+    if(question.type === "multiple"){
+        if(studentAnswer === null){
+            return false;
+        }
+
+        return Number(studentAnswer) ===
+            Number(question.answer);
+    }
+
+    if(question.type === "identification"){
+        if(
+            !studentAnswer ||
+            !String(studentAnswer).trim()
+        ){
+            return false;
+        }
+
+        const student = normalizeAnswer(studentAnswer);
+
+        return question.acceptedAnswers.some(
+            answer =>
+                normalizeAnswer(answer) === student
+        );
+    }
+
+    return false;
+}
+
+function getQuestionScore(question, studentAnswer){
+    if(question.type === "enumeration"){
+        return getEnumerationResult(question, studentAnswer);
+    }
+
+    const correct = checkQuestionAnswer(question, studentAnswer);
+
+    return {
+        points:correct ? 1 : 0,
+        maxPoints:1,
+        isCorrect:correct
+    };
+}
+
+
+document.addEventListener("input",event=>{
+    if(quizStarted && !quizSubmitted && event.target.closest("#quizForm")){
+        syncInProgressActivity("Typing an answer");
+    }
+});
+document.addEventListener("change",event=>{
+    if(quizStarted && !quizSubmitted && event.target.closest("#quizForm")){
+        syncInProgressActivity("Changed an answer");
+    }
+});
+
+/* =========================================================
+   PROGRESS
+========================================================= */
+
+function isAnswered(answer){
+
+    if(answer === null){
+        return false;
+    }
+
+    if(Array.isArray(answer)){
+        return answer.some(
+            value=>String(value).trim()
+        );
+    }
+
+    return String(answer).trim() !== "";
+}
+
+function updateProgress(){
+
+    if(!currentQuiz){
+        return;
+    }
+
+    const total =
+        currentQuiz.questions.length;
+
+    const answered =
+        answers.filter(isAnswered).length;
+
+    const percent =
+        total
+            ? Math.round(answered / total * 100)
+            : 0;
+
+    $("progressBar").style.width =
+        percent + "%";
+
+    $("progressText").textContent =
+        answered +
+        " of " +
+        total +
+        " questions answered (" +
+        percent +
+        "%)";
+}
+
+
+
+/* =========================================================
+   GOOGLE SHEETS SYNC
+   Uses a hidden HTML form instead of fetch().
+   This works when the quiz is opened directly from a
+   local .html file in the student's Downloads folder.
+========================================================= */
+
+function googleSheetsConnected(){
+    return GOOGLE_SHEETS_WEB_APP_URL &&
+           !GOOGLE_SHEETS_WEB_APP_URL.includes("PASTE_YOUR_GOOGLE_APPS_SCRIPT");
+}
+
+
+async function sendToGoogleSheets(record, action="save"){
+    const token = sessionStorage.getItem(SESSION_KEY);
+
+    try{
+        if(action === "save"){
+            return await apiRequest("saveRecord", {
+                token: record.teacherId ? token : "",
+                record: clone(record)
+            });
+        }
+
+        if(action === "delete"){
+            return await apiRequest("deleteRecord", {
+                token,
+                recordId: record.id,
+                quizNumber: record.quizNumber
+            });
+        }
+
+        if(action === "deleteAll"){
+            return await apiRequest("deleteAllRecords", {
+                token,
+                quizNumber: record.quizNumber
+            });
+        }
+    }catch(error){
+        console.error(error);
+    }
+
+    return {ok:false};
+}
+
+async function loadRecordsFromGoogleSheets(quizNumber){
+    if(!isTeacher()) return null;
+
+    try{
+        const data = await apiRequest("getRecords", {
+            token:sessionStorage.getItem(SESSION_KEY),
+            quizNumber
+        }, "GET");
+
+        return data && data.ok && Array.isArray(data.records)
+            ? data.records
+            : null;
+    }catch(error){
+        console.error(error);
+        return null;
+    }
+}
+
+async function refreshRecordsFromGoogleSheets(){
+    if(!isTeacher()) return false;
+
+    const remote = await loadRecordsFromGoogleSheets(currentQuizNumber);
+    if(remote === null){
+        renderRecords();
+        showAdminStatus("Could not load the latest student records.");
+        return false;
+    }
+
+    records[currentQuizNumber] = remote;
+    saveRecords();
+    renderRecords();
+    showAdminStatus("Student records refreshed.");
+    return true;
+}
+
+/* =========================================================
+   LIVE STUDENT ACTIVITY
+========================================================= */
+function syncInProgressActivity(action,currentQuestion){
+    if(!quizStarted || quizSubmitted || !currentRecordId) return;
+    const record=getRecords(currentStudentQuiz).find(r=>r.id===currentRecordId);
+    if(!record) return;
+    record.student=currentStudent; record.email=currentStudentEmail; record.section=currentStudentSection;
+    record.lastAction=action; record.lastActivityAt=new Date().toISOString();
+    record.answeredCount=answers.filter(isAnswered).length; record.currentQuestion=currentQuestion || record.currentQuestion || 1;
+    record.securityEvents=securityEvents; record.status="In Progress"; saveRecords();
+    clearTimeout(activitySyncTimer);
+    activitySyncTimer=setTimeout(()=>sendToGoogleSheets(record,"save").catch(()=>{}),300);
+}
+function startLiveMonitor(){
+    clearInterval(liveMonitorInterval); if(!isTeacher()) return;
+    liveMonitorInterval=setInterval(async()=>{
+        const remote=await loadRecordsFromGoogleSheets(currentQuizNumber);
+        if(remote){ records[currentQuizNumber]=remote; saveRecords(); renderRecords(); renderLiveStudents(remote); }
+        const st=$("liveMonitorStatus"); if(st) st.textContent="Updated "+new Date().toLocaleTimeString();
+    },3000);
+}
+function renderLiveStudents(all){
+    const box=$("liveStudentsContainer"); if(!box) return;
+    const active=all.filter(r=>{
+        if(r.status!=="In Progress") return false;
+        const last=new Date(r.lastActivityAt||r.startedAt||0).getTime();
+        return Date.now()-last < 15000;
+    }).sort((a,b)=>new Date(b.lastActivityAt||b.startedAt||0)-new Date(a.lastActivityAt||a.startedAt||0));
+    if(!active.length){box.innerHTML='<div class="small">No students are currently taking this quiz.</div>';return;}
+    box.innerHTML=active.map(r=>{
+        const count=all.filter(x=>x.email && r.email && x.email.toLowerCase()===r.email.toLowerCase()).length;
+        return `<div style="padding:12px;border:1px solid #dbeafe;border-radius:10px;margin-top:8px;background:white"><strong>${escapeHTML(r.student)}</strong> <span class="badge badge-blue">LIVE</span><div class="small">Email: ${escapeHTML(r.email||"—")} · Login count: ${count}</div><div class="small"><strong>Action:</strong> ${escapeHTML(r.lastAction||"Started quiz")} · Question ${r.currentQuestion||1} · ${r.answeredCount||0}/${r.total||0} answered</div><div class="small">Last seen: ${escapeHTML(formatDate(r.lastActivityAt||r.startedAt))}</div></div>`;
+    }).join("");
+}
+
+/* =========================================================
+   QUIZ TIMER
+========================================================= */
+
+function stopQuizTimer(){
+    if(quizTimerInterval){
+        clearInterval(quizTimerInterval);
+        quizTimerInterval = null;
+    }
+}
+
+function formatTimer(seconds){
+    seconds = Math.max(0, Number(seconds) || 0);
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const sec = seconds % 60;
+    return h > 0
+        ? String(h).padStart(2,"0") + ":" + String(m).padStart(2,"0") + ":" + String(sec).padStart(2,"0")
+        : String(m).padStart(2,"0") + ":" + String(sec).padStart(2,"0");
+}
+
+function updateQuizTimerDisplay(){
+    const box = $("timerCounter");
+    const display = $("quizTimer");
+    if(!box || !display) return;
+    display.textContent = formatTimer(quizTimeLeftSeconds);
+    box.classList.toggle("warning", quizTimeLeftSeconds <= 60 && quizTimeLeftSeconds > 0);
+    box.classList.toggle("danger", quizTimeLeftSeconds <= 10);
+}
+
+function startQuizTimer(){
+    stopQuizTimer();
+    const minutes = Math.max(0, Math.floor(Number(currentQuiz?.timerMinutes) || 0));
+    const box = $("timerCounter");
+    if(!minutes){
+        quizTimeLeftSeconds = 0;
+        if(box) box.classList.add("hidden");
+        return;
+    }
+    quizTimeLeftSeconds = minutes * 60;
+    if(box) box.classList.remove("hidden");
+    updateQuizTimerDisplay();
+    quizTimerInterval = setInterval(()=>{
+        if(quizSubmitted || !quizStarted){
+            stopQuizTimer();
+            return;
+        }
+        quizTimeLeftSeconds--;
+        updateQuizTimerDisplay();
+        if(quizTimeLeftSeconds <= 0){
+            stopQuizTimer();
+            submitQuiz(true, "Time expired");
+        }
+    }, 1000);
+}
+
+
+/* =========================================================
+   SUBMIT
+========================================================= */
+
+async function submitQuiz(autoSubmitted, submissionReason=""){
+
+    if(
+        quizSubmitted ||
+        submitting ||
+        !currentQuiz
+    ){
+        return;
+    }
+
+    if(!autoSubmitted){
+
+        const unanswered =
+            answers.filter(
+                answer=>!isAnswered(answer)
+            ).length;
+
+        if(unanswered){
+
+            if(!confirm(
+                "You have " +
+                unanswered +
+                " unanswered question(s). Submit anyway?"
+            )){
+                return;
+            }
+        }
+    }
+
+    submitting = true;
+    stopQuizTimer();
+
+    let correct = 0;
+    let total = 0;
+
+    const detailedAnswers =
+        currentQuiz.questions.map(
+            (question,index)=>{
+
+            const studentAnswer =
+                answers[index];
+
+            const score =
+                getQuestionScore(
+                    question,
+                    studentAnswer
+                );
+
+            correct += score.points;
+            total += score.maxPoints;
+
+            const isCorrect = score.isCorrect;
+
+            let selectedText = "";
+
+            let correctText = "";
+
+            if(question.type === "multiple"){
+
+                selectedText =
+                    studentAnswer === null
+                        ? null
+                        : question.options[
+                            Number(studentAnswer)
+                        ];
+
+                correctText =
+                    question.options[
+                        Number(question.answer)
+                    ];
+            }
+
+            if(question.type === "identification"){
+
+                selectedText =
+                    studentAnswer || null;
+
+                correctText =
+                    question.acceptedAnswers.join(
+                        " / "
+                    );
+            }
+
+            if(question.type === "enumeration"){
+
+                selectedText =
+                    Array.isArray(studentAnswer)
+                        ? studentAnswer
+                            .filter(Boolean)
+                            .join(", ")
+                        : null;
+
+                correctText =
+                    question.requiredAnswers.join(
+                        ", "
+                    );
+            }
+
+            return {
+
+                number:index + 1,
+
+                type:question.type,
+
+                question:question.question,
+
+                studentAnswer,
+
+                selected:selectedText,
+
+                correct:correctText,
+
+                isCorrect
+            };
+        });
+
+    const percentage =
+        total
+            ? Math.round(correct / total * 100)
+            : 0;
+
+    const existingRecord = getRecords(currentStudentQuiz).find(r=>r.id === currentRecordId);
+    const record = existingRecord || { id:currentRecordId || generateId("record") };
+    Object.assign(record, {
+        id:record.id,
+        attemptId,
+        teacherId:currentStudentTeacherId,
+        quizNumber:currentStudentQuiz,
+        quizTitle:currentQuiz.title,
+        student:currentStudent,
+        email:currentStudentEmail,
+        section:currentStudentSection,
+        lastAction:submissionReason || (autoSubmitted ? "Time expired" : "Submitted quiz"),
+        lastActivityAt:new Date().toISOString(),
+        correct,
+        total,
+        percentage,
+        securityEvents,
+        automatic:autoSubmitted,
+        status:"Completed",
+        submissionType:submissionReason || (autoSubmitted ? "Automatic" : "Manual"),
+        startedAt:record.startedAt || quizStartedAt || new Date().toISOString(),
+        submittedAt:new Date().toISOString(),
+        detailedAnswers
+    });
+    if(submissionReason === "Time expired") record.status = "Time Expired";
+
+    if(!getRecords(currentStudentQuiz).some(r=>r.id === record.id)){
+        getRecords(currentStudentQuiz).push(record);
+    }
+    saveRecords();
+
+    // Save the same record ID so the teacher sees one continuous attempt.
+    const saveResponse = await sendToGoogleSheets(record, "save");
+    if(!saveResponse || !saveResponse.ok){
+        console.error("GarthQuiz result save failed:", saveResponse);
+        alert("The quiz result could not be synchronized to the teacher dashboard. Please notify your teacher.");
+    }
+
+    quizSubmitted = true;
+    quizStarted = false;
+    submitting = false;
+    gqStopHeartbeat();
+
+    if(window.gqStudentEmail){
+        const done = gqGetAttempt(window.gqStudentEmail, currentStudentQuiz) || {};
+        done.status = "completed";
+        done.lastAction = "Submitted quiz";
+        done.attemptNumber = Number(done.attemptNumber || 1);
+        done.maxAttempts = 2;
+        done.lastActivityAt = new Date().toISOString();
+        done.student = currentStudent;
+        done.section = currentStudentSection;
+        gqSaveAttempt(done);
+    }
+    stopQuizTimer();
+    $("timerCounter")?.classList.add("hidden");
+
+    exitFullscreen();
+
+    showResult(record);
+}
+
+
+/* =========================================================
+   RESULT
+========================================================= */
+
+function showResult(record){
+
+    $("resultScore").textContent =
+        record.percentage + "%";
+
+    let message;
+
+    if(record.percentage >= 90){
+        message = "Excellent work!";
+    }else if(record.percentage >= 75){
+        message = "Great job!";
+    }else if(record.percentage >= 60){
+        message = "Good effort!";
+    }else{
+        message = "Keep practicing!";
+    }
+
+    if(record.status === "Time Expired"){
+        message += " Time expired, so the quiz was submitted automatically.";
+    }else if(record.automatic){
+        message += " Your quiz was automatically submitted.";
+    }
+
+    $("resultMessage").textContent =
+        message;
+
+    $("resultInformation").innerHTML = `
+
+        <div class="card"
+        style="background:#f8fafc">
+
+            <p>
+                <strong>Quiz:</strong>
+                ${escapeHTML(record.quizTitle)}
+            </p>
+
+            <p>
+                <strong>Student:</strong>
+                ${escapeHTML(record.student)}
+            </p>
+
+            <p>
+                <strong>Class / Section:</strong>
+                ${escapeHTML(record.section)}
+            </p>
+
+            <p>
+                <strong>Score:</strong>
+                ${record.correct}/${record.total} point(s)
+                (${record.percentage}%)
+            </p>
+
+            <p>
+                <strong>Security Events:</strong>
+                ${record.securityEvents}
+            </p>
+
+            <p>
+                <strong>Submission:</strong>
+                ${record.automatic
+                    ? "Automatic"
+                    : "Manual"}
+            </p>
+
+        </div>
+    `;
+
+    showScreen("resultScreen");
+}
+
+
+/* =========================================================
+   SECURITY / SCREENSHOT BEST-EFFORT DETECTION
+========================================================= */
+
+/*
+ IMPORTANT:
+
+ A webpage cannot reliably detect every operating-system
+ screenshot.
+
+ This system detects:
+
+ 1. PrintScreen
+ 2. Windows screenshot shortcut combinations
+ 3. macOS screenshot shortcut combinations
+ 4. Leaving the browser/page
+ 5. Browser losing focus
+ 6. Visibility becoming hidden
+ 7. Exiting fullscreen during a quiz
+
+ Three security events = automatic submission.
+*/
+
+function securityEvent(reason){
+
+    if(
+        !quizStarted ||
+        quizSubmitted ||
+        submitting
+    ){
+        return;
+    }
+
+    securityEvents++;
+    syncInProgressActivity(reason);
+
+    $("securityCount").textContent =
+        securityEvents;
+
+    if(securityEvents === 1){
+
+        showSecurityWarning(
+            "Security event 1/3: " +
+            reason +
+            " Another security event may be recorded.",
+            false
+        );
+
+    }else if(securityEvents === 2){
+
+        showSecurityWarning(
+            "Security event 2/3: " +
+            reason +
+            " One more event will automatically submit the quiz.",
+            false
+        );
+
+    }else{
+
+        showSecurityWarning(
+            "Security event 3/3. The quiz is being submitted automatically.",
+            true
+        );
+
+        setTimeout(
+            ()=>submitQuiz(true),
+            500
+        );
+    }
+}
+
+function showSecurityWarning(
+    message,
+    danger=false
+){
+
+    const box =
+        $("securityWarning");
+
+    box.textContent =
+        message;
+
+    box.classList.toggle(
+        "danger",
+        danger
+    );
+
+    box.classList.remove("hidden");
+
+    clearTimeout(
+        showSecurityWarning.timer
+    );
+
+    showSecurityWarning.timer =
+        setTimeout(
+            ()=>{
+                box.classList.add("hidden");
+            },
+            5000
+        );
+}
+
+
+/*
+ Keyboard screenshot shortcuts.
+ These are only detectable if the browser exposes
+ the keyboard event.
+*/
+
+document.addEventListener(
+    "keydown",
+    event=>{
+
+        if(
+            !quizStarted ||
+            quizSubmitted
+        ){
+            return;
+        }
+
+        const key =
+            String(event.key || "").toLowerCase();
+
+        const code =
+            String(event.code || "");
+
+        let screenshotShortcut = false;
+
+        if(
+            key === "printscreen" ||
+            code === "PrintScreen"
+        ){
+            screenshotShortcut = true;
+        }
+
+        /*
+         Windows:
+         Win + Shift + S
+        */
+        if(
+            event.metaKey &&
+            event.shiftKey &&
+            key === "s"
+        ){
+            screenshotShortcut = true;
+        }
+
+        /*
+         macOS:
+         Cmd + Shift + 3
+         Cmd + Shift + 4
+         Cmd + Shift + 5
+        */
+        if(
+            event.metaKey &&
+            event.shiftKey &&
+            ["3","4","5"].includes(key)
+        ){
+            screenshotShortcut = true;
+        }
+
+        /*
+         Some systems/browsers may expose
+         Ctrl + Shift + S.
+        */
+        if(
+            event.ctrlKey &&
+            event.shiftKey &&
+            key === "s"
+        ){
+            screenshotShortcut = true;
+        }
+
+        if(screenshotShortcut){
+
+            event.preventDefault();
+
+            securityEvent(
+                "A screenshot-related keyboard shortcut was detected."
+            );
+
+            return;
+        }
+
+        /*
+         Block common copying / printing tools
+         while quiz is active.
+        */
+
+        if(event.ctrlKey || event.metaKey){
+
+            const blocked = [
+                "c",
+                "x",
+                "v",
+                "s",
+                "p",
+                "u"
+            ];
+
+            if(blocked.includes(key)){
+                event.preventDefault();
+            }
+        }
+
+        if(event.key === "F12"){
+            event.preventDefault();
+        }
+    }
+);
+
+
+/*
+ Page hidden.
+*/
+
+document.addEventListener(
+    "visibilitychange",
+    ()=>{
+
+        if(
+            !quizStarted ||
+            quizSubmitted
+        ){
+            return;
+        }
+
+        if(
+            document.visibilityState ===
+            "hidden"
+        ){
+
+            securityEvent(
+                "You left the quiz window or switched applications."
+            );
+        }
+    }
+);
+
+
+/*
+ Browser loses focus.
+*/
+
+window.addEventListener(
+    "blur",
+    ()=>{
+
+        if(
+            quizStarted &&
+            !quizSubmitted
+        ){
+
+            securityEvent(
+                "The quiz window lost focus."
+            );
+        }
+    }
+);
+
+
+/*
+ Fullscreen exit.
+*/
+
+document.addEventListener(
+    "fullscreenchange",
+    ()=>{
+
+        if(
+            quizStarted &&
+            !quizSubmitted &&
+            !document.fullscreenElement
+        ){
+
+            securityEvent(
+                "Fullscreen mode was exited."
+            );
+        }
+    }
+);
+
+
+/*
+ Disable context menu while testing.
+*/
+
+document.addEventListener(
+    "contextmenu",
+    event=>{
+
+        if(
+            quizStarted &&
+            !quizSubmitted
+        ){
+
+            event.preventDefault();
+        }
+    }
+);
+
+
+/*
+ Disable dragging.
+*/
+
+document.addEventListener(
+    "dragstart",
+    event=>{
+
+        if(
+            quizStarted &&
+            !quizSubmitted
+        ){
+
+            event.preventDefault();
+        }
+    }
+);
+
+
+/* =========================================================
+   FULLSCREEN
+========================================================= */
+
+function enterFullscreen(){
+
+    try{
+
+        if(
+            document.documentElement
+                .requestFullscreen
+        ){
+
+            document.documentElement
+                .requestFullscreen()
+                .catch(()=>{});
+        }
+
+    }catch(error){}
+}
+
+function exitFullscreen(){
+
+    try{
+
+        if(
+            document.fullscreenElement &&
+            document.exitFullscreen
+        ){
+
+            document.exitFullscreen()
+                .catch(()=>{});
+        }
+
+    }catch(error){}
+}
+
+
+/* =========================================================
+   TEACHER LOGIN
+========================================================= */
+
+
+function openTeacherLogin(){
+    $("teacherUsername").value = "";
+    $("teacherPassword").value = "";
+    $("teacherLoginError").classList.add("hidden");
+    showScreen("teacherLoginScreen");
+}
+
+function openTeacherRegister(){
+    ["registerTeacherName","registerTeacherUsername","registerTeacherPassword","registerTeacherPassword2"]
+        .forEach(id=>$(id).value="");
+    $("teacherRegisterError").classList.add("hidden");
+    $("teacherRegisterSuccess").classList.add("hidden");
+    showScreen("teacherRegisterScreen");
+}
+
+async function registerTeacher(){
+    const name = $("registerTeacherName").value.trim();
+    const username = $("registerTeacherUsername").value.trim();
+    const password = $("registerTeacherPassword").value;
+    const password2 = $("registerTeacherPassword2").value;
+    const error = $("teacherRegisterError");
+    const success = $("teacherRegisterSuccess");
+
+    error.classList.add("hidden");
+    success.classList.add("hidden");
+
+    if(!name || !username || !password){
+        error.textContent = "Please complete all required fields.";
+        error.classList.remove("hidden");
+        return;
+    }
+    if(username.length < 3){
+        error.textContent = "Username must be at least 3 characters.";
+        error.classList.remove("hidden");
+        return;
+    }
+    if(password.length < 6){
+        error.textContent = "Password must be at least 6 characters.";
+        error.classList.remove("hidden");
+        return;
+    }
+    if(password !== password2){
+        error.textContent = "Passwords do not match.";
+        error.classList.remove("hidden");
+        return;
+    }
+
+    try{
+        const data = await apiRequest("registerTeacher", {name, username, password});
+        if(!data || !data.ok){
+            error.textContent = data && data.message ? data.message : "Could not create the account.";
+            error.classList.remove("hidden");
+            return;
+        }
+
+        success.textContent = "Account created successfully. You can now sign in.";
+        success.classList.remove("hidden");
+
+        $("teacherUsername").value = username;
+        $("teacherPassword").value = "";
+        setTimeout(openTeacherLogin, 900);
+    }catch(e){
+        error.textContent = "Server connection failed. Please try again.";
+        error.classList.remove("hidden");
+    }
+}
+
+async function teacherLogin(){
+    const username = $("teacherUsername").value.trim();
+    const password = $("teacherPassword").value;
+    const error = $("teacherLoginError");
+
+    error.classList.add("hidden");
+
+    if(!username || !password){
+        error.textContent = "Enter your username and password.";
+        error.classList.remove("hidden");
+        return;
+    }
+
+    try{
+        const data = await apiRequest("loginTeacher", {username, password});
+
+        if(!data || !data.ok){
+            error.textContent = data && data.message ? data.message : "Incorrect username or password.";
+            error.classList.remove("hidden");
+            return;
+        }
+
+        sessionStorage.setItem(SESSION_KEY, data.token);
+        currentTeacher = data.teacher;
+
+        const loaded = await loadTeacherData();
+        if(!loaded){
+            sessionStorage.removeItem(SESSION_KEY);
+            error.textContent = "Login succeeded, but the teacher data could not be loaded.";
+            error.classList.remove("hidden");
+            return;
+        }
+
+        $("teacherDisplay").textContent = currentTeacher.name || currentTeacher.username;
+        showAdminDashboard();
+    }catch(e){
+        error.textContent = "Server connection failed. Please check the deployed Apps Script URL.";
+        error.classList.remove("hidden");
+    }
+}
+
+function isTeacher(){
+    return !!sessionStorage.getItem(SESSION_KEY) && !!currentTeacher;
+}
+
+async function teacherLogout(){
+    const token = sessionStorage.getItem(SESSION_KEY);
+    if(token){
+        try{ await apiRequest("logoutTeacher", {token}); }catch(e){}
+    }
+
+    sessionStorage.removeItem(SESSION_KEY);
+    currentTeacher = null;
+    quizzes = {};
+    records = {};
+    await loadPublishedQuizzes();
+    showScreen("homeScreen");
+}
+
+function showAdminDashboard(){
+    if(!isTeacher()){
+        openTeacherLogin();
+        return;
+    }
+
+    showScreen("adminScreen");
+    renderAdminQuizTabs();
+    selectAdminQuiz(1);
+    showAdminSection("records");
+}
+
+/* =========================================================
+   ADMIN NAVIGATION
+========================================================= */
+
+function showAdminSection(section){
+
+    if(!isTeacher()){
+        openTeacherLogin();
+        return;
+    }
+
+    if(section === "records"){
+
+        $("recordsSection")
+            .classList
+            .remove("hidden");
+
+        $("editorSection")
+            .classList
+            .add("hidden");
+
+        $("recordsButton").className =
+            "btn btn-primary";
+
+        $("editorButton").className =
+            "btn btn-secondary";
+
+        renderRecords();
+
+    }else{
+
+        $("recordsSection")
+            .classList
+            .add("hidden");
+
+        $("editorSection")
+            .classList
+            .remove("hidden");
+
+        $("recordsButton").className =
+            "btn btn-secondary";
+
+        $("editorButton").className =
+            "btn btn-primary";
+
+        loadEditor();
+    }
+}
+
+
+function renderAdminQuizTabs(){
+    const container = $("adminQuizTabs");
+    container.innerHTML = "";
+
+    getQuizNumbers().forEach(i=>{
+        const quiz = getQuiz(i);
+        const button = document.createElement("button");
+        button.className = "quiz-tab";
+        button.innerHTML = `Quiz ${i}<br><span class="small">${quiz.published ? "PUBLISHED" : "DRAFT"}</span>`;
+        button.onclick = ()=>selectAdminQuiz(i);
+        container.appendChild(button);
+    });
+}
+
+function selectAdminQuiz(number){
+
+    if(!isTeacher()){
+        openTeacherLogin();
+        return;
+    }
+
+    currentQuizNumber =
+        number;
+
+    const quiz =
+        getQuiz(number);
+
+    document
+        .querySelectorAll(".quiz-tab")
+        .forEach(
+            (button,index)=>{
+
+            button.classList.toggle(
+                "active",
+                getQuizNumbers()[index] === number
+            );
+        }
+    );
+
+    $("selectedQuizName").textContent =
+        "Quiz " +
+        number +
+        " — " +
+        quiz.title;
+
+    $("selectedQuizCode").textContent =
+        "Access Code: " +
+        (quiz.code || "Not set");
+
+    loadEditor();
+
+    renderRecords();
+    startLiveMonitor();
+}
+
+
+/* =========================================================
+   QUIZ EDITOR
+========================================================= */
+
+function loadEditor(){
+
+    const quiz =
+        getQuiz(currentQuizNumber);
+
+    $("quizTitleInput").value =
+        quiz.title;
+
+    $("quizCodeInput").value =
+        quiz.code || "";
+
+    $("quizInstructionsInput").value =
+        quiz.instructions || "";
+
+    $("quizTimerInput").value =
+        Number(quiz.timerMinutes) || 0;
+
+    renderQuestionEditors();
+}
+
+function renderQuestionEditors(){
+
+    const quiz =
+        getQuiz(currentQuizNumber);
+
+    const container =
+        $("questionEditors");
+
+    container.innerHTML = "";
+
+    quiz.questions.forEach(
+        (question,index)=>{
+
+        const editor =
+            document.createElement("div");
+
+        editor.className =
+            "question-editor";
+
+        editor.innerHTML = `
+
+            <div class="question-editor-header">
+
+                <h3>
+                    Question ${index + 1}
+                </h3>
+
+                <button
+                    class="btn btn-danger"
+                    type="button"
+                    onclick="deleteQuestion(${index})">
+                    Delete
+                </button>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>
+                    Question Type
+                </label>
+
+                <select
+                    id="type_${index}"
+                    onchange="changeQuestionType(${index})">
+
+                    <option value="multiple">
+                        Multiple Choice
+                    </option>
+
+                    <option value="identification">
+                        Identification
+                    </option>
+
+                    <option value="enumeration">
+                        Enumeration
+                    </option>
+
+                </select>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>
+                    Question
+                </label>
+
+                <textarea
+                    id="question_${index}"
+                    placeholder="Enter question..."
+                ></textarea>
+
+            </div>
+
+            <div id="questionSettings_${index}">
+            </div>
+        `;
+
+        container.appendChild(editor);
+
+        $("type_" + index).value =
+            question.type;
+
+        $("question_" + index).value =
+            question.question;
+
+        $("question_" + index)
+            .addEventListener(
+                "input",
+                function(){
+
+                    quiz.questions[index]
+                        .question =
+                        this.value;
+                }
+            );
+
+        renderQuestionTypeSettings(index);
+    });
+}
+
+function changeQuestionType(index){
+
+    const quiz =
+        getQuiz(currentQuizNumber);
+
+    const old =
+        quiz.questions[index];
+
+    const type =
+        $("type_" + index).value;
+
+    if(type === old.type){
+        return;
+    }
+
+    const question =
+        createQuestion(type);
+
+    question.question =
+        old.question || question.question;
+
+    quiz.questions[index] =
+        question;
+
+    renderQuestionEditors();
+
+    showAdminStatus(
+        "Question type changed."
+    );
+}
+
+function renderQuestionTypeSettings(index){
+
+    const quiz =
+        getQuiz(currentQuizNumber);
+
+    const question =
+        quiz.questions[index];
+
+    const container =
+        $("questionSettings_" + index);
+
+    if(question.type === "multiple"){
+
+        renderMultipleEditor(
+            container,
+            question,
+            index
+        );
+
+        return;
+    }
+
+    if(question.type === "identification"){
+
+        renderIdentificationEditor(
+            container,
+            question,
+            index
+        );
+
+        return;
+    }
+
+    if(question.type === "enumeration"){
+
+        renderEnumerationEditor(
+            container,
+            question,
+            index
+        );
+
+        return;
+    }
+}
+
+
+/* =========================================================
+   MULTIPLE CHOICE EDITOR
+========================================================= */
+
+function renderMultipleEditor(
+    container,
+    question,
+    index
+){
+
+    container.innerHTML = `
+
+        <div class="type-settings">
+
+            <h3>Multiple Choice Settings</h3>
+
+            <div class="small"
+            style="margin-bottom:12px">
+                Add choices and select the correct answer.
+            </div>
+
+            <div id="multipleOptions_${index}">
+            </div>
+
+            <button
+                type="button"
+                class="btn btn-primary"
+                onclick="addMultipleChoiceOption(${index})">
+                + Add Choice
+            </button>
+
+            <div class="form-group"
+            style="margin-top:15px">
+
+                <label>
+                    Correct Answer
+                </label>
+
+                <select
+                    id="multipleCorrect_${index}">
+                </select>
+
+            </div>
+
+        </div>
+    `;
+
+    renderMultipleOptions(index);
+}
+
+function renderMultipleOptions(index){
+
+    const quiz =
+        getQuiz(currentQuizNumber);
+
+    const question =
+        quiz.questions[index];
+
+    const container =
+        $("multipleOptions_" + index);
+
+    const select =
+        $("multipleCorrect_" + index);
+
+    container.innerHTML = "";
+    select.innerHTML = "";
+
+    question.options.forEach(
+        (option,optionIndex)=>{
+
+        const row =
+            document.createElement("div");
+
+        row.className =
+            "option-editor";
+
+        const letter =
+            document.createElement("div");
+
+        letter.className =
+            "option-letter";
+
+        letter.textContent =
+            String.fromCharCode(
+                65 + optionIndex
+            );
+
+        const input =
+            document.createElement("input");
+
+        input.type = "text";
+        input.value = option;
+
+        input.addEventListener(
+            "input",
+            ()=>{
+
+                question.options[
+                    optionIndex
+                ] = input.value;
+
+                renderMultipleCorrectSelect(
+                    index
+                );
+            }
+        );
+
+        const remove =
+            document.createElement("button");
+
+        remove.type = "button";
+        remove.className =
+            "btn btn-danger";
+
+        remove.textContent =
+            "Remove";
+
+        remove.onclick =
+            ()=>removeMultipleChoiceOption(
+                index,
+                optionIndex
+            );
+
+        row.appendChild(letter);
+        row.appendChild(input);
+        row.appendChild(remove);
+
+        container.appendChild(row);
+    });
+
+    renderMultipleCorrectSelect(index);
+}
+
+function renderMultipleCorrectSelect(index){
+
+    const quiz =
+        getQuiz(currentQuizNumber);
+
+    const question =
+        quiz.questions[index];
+
+    const select =
+        $("multipleCorrect_" + index);
+
+    if(!select){
+        return;
+    }
+
+    select.innerHTML = "";
+
+    question.options.forEach(
+        (option,optionIndex)=>{
+
+        const choice =
+            document.createElement("option");
+
+        choice.value =
+            optionIndex;
+
+        choice.textContent =
+            String.fromCharCode(
+                65 + optionIndex
+            ) +
+            " — " +
+            option;
+
+        select.appendChild(choice);
+    });
+
+    if(
+        question.answer >= 0 &&
+        question.answer <
+        question.options.length
+    ){
+
+        select.value =
+            question.answer;
+    }
+
+    select.onchange =
+        ()=>{
+            question.answer =
+                Number(select.value);
+        };
+}
+
+function addMultipleChoiceOption(index){
+
+    const quiz =
+        getQuiz(currentQuizNumber);
+
+    const question =
+        quiz.questions[index];
+
+    if(question.options.length >= 6){
+
+        alert(
+            "Maximum of 6 choices."
+        );
+
+        return;
+    }
+
+    question.options.push(
+        "New Choice"
+    );
+
+    renderQuestionEditors();
+}
+
+function removeMultipleChoiceOption(
+    index,
+    optionIndex
+){
+
+    const quiz =
+        getQuiz(currentQuizNumber);
+
+    const question =
+        quiz.questions[index];
+
+    if(question.options.length <= 2){
+
+        alert(
+            "Multiple choice questions need at least 2 choices."
+        );
+
+        return;
+    }
+
+    question.options.splice(
+        optionIndex,
+        1
+    );
+
+    if(question.answer === optionIndex){
+
+        question.answer = 0;
+
+    }else if(
+        question.answer > optionIndex
+    ){
+
+        question.answer--;
+    }
+
+    renderQuestionEditors();
+}
+
+
+/* =========================================================
+   IDENTIFICATION EDITOR
+========================================================= */
+
+function renderIdentificationEditor(
+    container,
+    question,
+    index
+){
+
+    container.innerHTML = `
+
+        <div class="type-settings">
+
+            <h3>Identification Settings</h3>
+
+            <p class="small">
+                Add every answer that should be accepted.
+                Answers are compared without regard to
+                capitalization or extra spaces.
+            </p>
+
+            <div id="acceptedAnswers_${index}">
+            </div>
+
+            <button
+                type="button"
+                class="btn btn-primary"
+                onclick="addAcceptedAnswer(${index})">
+                + Add Accepted Answer
+            </button>
+
+        </div>
+    `;
+
+    renderAcceptedAnswers(index);
+}
+
+function renderAcceptedAnswers(index){
+
+    const quiz =
+        getQuiz(currentQuizNumber);
+
+    const question =
+        quiz.questions[index];
+
+    const container =
+        $("acceptedAnswers_" + index);
+
+    container.innerHTML = "";
+
+    question.acceptedAnswers.forEach(
+        (answer,answerIndex)=>{
+
+        const row =
+            document.createElement("div");
+
+        row.className =
+            "accepted-answer";
+
+        const input =
+            document.createElement("input");
+
+        input.type = "text";
+        input.value = answer;
+
+        input.placeholder =
+            "Accepted answer";
+
+        input.addEventListener(
+            "input",
+            ()=>{
+                question.acceptedAnswers[
+                    answerIndex
+                ] = input.value;
+            }
+        );
+
+        const button =
+            document.createElement("button");
+
+        button.type = "button";
+        button.className =
+            "btn btn-danger";
+
+        button.textContent =
+            "Remove";
+
+        button.onclick =
+            ()=>{
+
+            if(
+                question.acceptedAnswers
+                    .length <= 1
+            ){
+
+                alert(
+                    "At least one accepted answer is required."
+                );
+
+                return;
+            }
+
+            question.acceptedAnswers
+                .splice(
+                    answerIndex,
+                    1
+                );
+
+            renderQuestionEditors();
+        };
+
+        row.appendChild(input);
+        row.appendChild(button);
+
+        container.appendChild(row);
+    });
+}
+
+function addAcceptedAnswer(index){
+
+    const quiz =
+        getQuiz(currentQuizNumber);
+
+    quiz.questions[index]
+        .acceptedAnswers
+        .push("New accepted answer");
+
+    renderQuestionEditors();
+}
+
+
+/* =========================================================
+   ENUMERATION EDITOR
+========================================================= */
+
+function renderEnumerationEditor(
+    container,
+    question,
+    index
+){
+
+    const maxStudentAnswers =
+        Math.max(
+            1,
+            question.requiredAnswers.length
+        );
+
+    question.studentAnswerCount =
+        Math.max(
+            1,
+            Math.min(
+                Number(question.studentAnswerCount) || maxStudentAnswers,
+                maxStudentAnswers
+            )
+        );
+
+    question.orderMode =
+        question.orderMode === "in-order"
+            ? "in-order"
+            : "any";
+
+    container.innerHTML = `
+
+        <div class="type-settings">
+
+            <h3>Enumeration Settings</h3>
+
+            <p class="small">
+                Add all possible correct answers below.
+                Students will only be asked to enter the number of answers
+                you choose. Each correct answer is worth 1 point.
+            </p>
+
+            <div class="form-group">
+                <label>
+                    <strong>Number of answers students must enter</strong>
+                </label>
+
+                <input
+                    type="number"
+                    id="enumStudentCount_${index}"
+                    min="1"
+                    max="${maxStudentAnswers}"
+                    value="${question.studentAnswerCount}">
+
+                <div class="small" style="margin-top:6px">
+                    Example: If there are 5 possible correct answers,
+                    you can require students to enter only 2.
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <strong>Answer checking order</strong>
+                </label>
+
+                <select
+                    id="enumOrderMode_${index}"
+                    style="width:100%;padding:10px;border-radius:8px">
+
+                    <option value="any"
+                        ${question.orderMode === "any" ? "selected" : ""}>
+                        Any Order
+                    </option>
+
+                    <option value="in-order"
+                        ${question.orderMode === "in-order" ? "selected" : ""}>
+                        In Order
+                    </option>
+
+                </select>
+
+                <div class="small" style="margin-top:6px">
+                    <strong>Any Order:</strong> answers can be entered in any order.<br>
+                    <strong>In Order:</strong> answers must match the teacher's
+                    answer order.
+                </div>
+            </div>
+
+            <div id="requiredAnswers_${index}">
+            </div>
+
+            <button
+                type="button"
+                class="btn btn-primary"
+                onclick="addEnumerationAnswer(${index})">
+                + Add Possible Correct Answer
+            </button>
+
+        </div>
+    `;
+
+    const orderSelect =
+        $("enumOrderMode_" + index);
+
+    orderSelect.addEventListener(
+        "change",
+        function(){
+            question.orderMode =
+                this.value === "in-order"
+                    ? "in-order"
+                    : "any";
+        }
+    );
+
+    const studentCountInput =
+        $("enumStudentCount_" + index);
+
+    studentCountInput.addEventListener(
+        "input",
+        function(){
+
+            const max =
+                Math.max(
+                    1,
+                    question.requiredAnswers.length
+                );
+
+            question.studentAnswerCount =
+                Math.max(
+                    1,
+                    Math.min(
+                        Number(this.value) || 1,
+                        max
+                    )
+                );
+
+            this.value =
+                question.studentAnswerCount;
+        }
+    );
+
+    renderEnumerationAnswers(index);
+}
+
+
+function renderEnumerationAnswers(index){
+
+    const quiz =
+        getQuiz(currentQuizNumber);
+
+    const question =
+        quiz.questions[index];
+
+    const container =
+        $("requiredAnswers_" + index);
+
+    container.innerHTML = "";
+
+    question.requiredAnswers.forEach(
+        (answer,answerIndex)=>{
+
+        const row =
+            document.createElement("div");
+
+        row.className =
+            "accepted-answer";
+
+        const input =
+            document.createElement("input");
+
+        input.type = "text";
+        input.value = answer;
+
+        input.placeholder =
+            "Possible correct answer " +
+            (answerIndex + 1);
+
+        input.addEventListener(
+            "input",
+            ()=>{
+                question.requiredAnswers[
+                    answerIndex
+                ] = input.value;
+            }
+        );
+
+        const button =
+            document.createElement("button");
+
+        button.type = "button";
+        button.className =
+            "btn btn-danger";
+
+        button.textContent =
+            "Remove";
+
+        button.onclick =
+            ()=>{
+
+            if(
+                question.requiredAnswers
+                    .length <= 1
+            ){
+
+                alert(
+                    "At least one possible correct answer is needed."
+                );
+
+                return;
+            }
+
+            question.requiredAnswers
+                .splice(
+                    answerIndex,
+                    1
+                );
+
+            renderQuestionEditors();
+        };
+
+        row.appendChild(input);
+        row.appendChild(button);
+
+        container.appendChild(row);
+    });
+}
+
+function addEnumerationAnswer(index){
+
+    const quiz =
+        getQuiz(currentQuizNumber);
+
+    const question =
+        quiz.questions[index];
+
+    question.requiredAnswers.push(
+        "New possible correct answer"
+    );
+
+    if(
+        !question.studentAnswerCount ||
+        question.studentAnswerCount < 1
+    ){
+        question.studentAnswerCount = 1;
+    }
+
+    renderQuestionEditors();
+}
+
+
+/* =========================================================
+   ADD / DELETE / SAVE QUESTIONS
+========================================================= */
+
+function addQuestion(){
+
+    const quiz =
+        getQuiz(currentQuizNumber);
+
+    quiz.questions.push(
+        createQuestion("multiple")
+    );
+
+    renderQuestionEditors();
+
+    showAdminStatus(
+        "New Multiple Choice question added."
+    );
+}
+
+function deleteQuestion(index){
+
+    if(!confirm(
+        "Delete Question " +
+        (index + 1) +
+        "?"
+    )){
+        return;
+    }
+
+    const quiz =
+        getQuiz(currentQuizNumber);
+
+    quiz.questions.splice(
+        index,
+        1
+    );
+
+    renderQuestionEditors();
+}
+
+function validateQuiz(quiz){
+
+    if(!quiz.title.trim()){
+
+        alert(
+            "Quiz title is required."
+        );
+
+        return false;
+    }
+
+    if(!quiz.code.trim()){
+
+        alert(
+            "Quiz access code is required."
+        );
+
+        return false;
+    }
+
+    for(
+        let i=0;
+        i<quiz.questions.length;
+        i++
+    ){
+
+        const question =
+            quiz.questions[i];
+
+        if(!question.question.trim()){
+
+            alert(
+                "Question " +
+                (i + 1) +
+                " is empty."
+            );
+
+            return false;
+        }
+
+        if(question.type === "multiple"){
+
+            if(
+                !Array.isArray(
+                    question.options
+                ) ||
+                question.options.length < 2
+            ){
+
+                alert(
+                    "Multiple Choice Question " +
+                    (i + 1) +
+                    " needs at least 2 choices."
+                );
+
+                return false;
+            }
+
+            if(
+                question.options.some(
+                    option =>
+                        !String(option).trim()
+                )
+            ){
+
+                alert(
+                    "Every multiple choice option must contain text."
+                );
+
+                return false;
+            }
+
+            if(
+                question.answer < 0 ||
+                question.answer >=
+                question.options.length
+            ){
+
+                alert(
+                    "Invalid correct answer in Question " +
+                    (i + 1)
+                );
+
+                return false;
+            }
+        }
+
+        if(
+            question.type ===
+            "identification"
+        ){
+
+            if(
+                !Array.isArray(
+                    question.acceptedAnswers
+                ) ||
+                !question.acceptedAnswers
+                    .some(
+                        answer =>
+                            String(answer).trim()
+                    )
+            ){
+
+                alert(
+                    "Identification Question " +
+                    (i + 1) +
+                    " needs at least one accepted answer."
+                );
+
+                return false;
+            }
+        }
+
+        if(
+            question.type ===
+            "enumeration"
+        ){
+
+            if(
+                !Array.isArray(
+                    question.requiredAnswers
+                ) ||
+                !question.requiredAnswers.length
+            ){
+
+                alert(
+                    "Enumeration Question " +
+                    (i + 1) +
+                    " needs required answers."
+                );
+
+                return false;
+            }
+
+            if(
+                question.requiredAnswers.some(
+                    answer =>
+                        !String(answer).trim()
+                )
+            ){
+
+                alert(
+                    "Every enumeration answer must contain text."
+                );
+
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+async function saveQuiz(){
+    if(!isTeacher()) return;
+
+    const quiz = getQuiz(currentQuizNumber);
+
+    quiz.title = $("quizTitleInput").value.trim() || "Quiz " + currentQuizNumber;
+    quiz.code = $("quizCodeInput").value.trim().toUpperCase();
+    quiz.instructions = $("quizInstructionsInput").value;
+    quiz.timerMinutes = Math.max(0, Math.floor(Number($("quizTimerInput").value) || 0));
+
+    if(!quiz.code){
+        alert("Please enter a quiz access code.");
+        return;
+    }
+
+    if(!validateQuiz(quiz)) return;
+
+    saveQuizzes();
+
+    const sent = await saveQuizToGoogleSheets(clone(quiz));
+
+    if(sent){
+        showAdminStatus("Quiz saved to your teacher account.");
+    }else{
+        showAdminStatus("Quiz could not be saved to the server.");
+    }
+
+    renderAdminQuizTabs();
+    selectAdminQuiz(currentQuizNumber);
+    renderHomeQuizzes();
+}
+
+async function toggleCurrentQuizPublished(){
+    if(!isTeacher()) return;
+
+    const quiz = getQuiz(currentQuizNumber);
+
+    if(!quiz.published){
+        if(!validateQuiz(quiz)) return;
+        quiz.published = true;
+    }else{
+        quiz.published = false;
+    }
+
+    const saved = await saveQuizToGoogleSheets(clone(quiz));
+    if(!saved){
+        quiz.published = !quiz.published;
+        showAdminStatus("Could not update the publish status.");
+        return;
+    }
+
+    saveQuizzes();
+    renderAdminQuizTabs();
+    selectAdminQuiz(currentQuizNumber);
+    await loadPublishedQuizzes();
+
+    showAdminStatus(
+        quiz.published
+            ? "Quiz published. Students can now see it and use its access code."
+            : "Quiz unpublished. Students can no longer start it."
+    );
+}
+
+async function publishAllQuizzes(){
+    if(!isTeacher()) return;
+
+    const numbers = getQuizNumbers();
+
+    if(!numbers.length){
+        alert("Create at least one quiz first.");
+        return;
+    }
+
+    if(!confirm("Publish all " + numbers.length + " quiz(es) belonging to your teacher account?")){
+        return;
+    }
+
+    let sent = 0;
+
+    for(const i of numbers){
+        const quiz = getQuiz(i);
+        if(!validateQuiz(quiz)) continue;
+        quiz.published = true;
+        if(await saveQuizToGoogleSheets(clone(quiz))) sent++;
+    }
+
+    saveQuizzes();
+    renderAdminQuizTabs();
+    selectAdminQuiz(currentQuizNumber);
+    await loadPublishedQuizzes();
+
+    showAdminStatus("Published " + sent + " quiz(es).");
+}
+
+async function refreshQuizData(){
+    if(!isTeacher()) return;
+
+    const ok = await loadTeacherData();
+    if(ok){
+        renderAdminQuizTabs();
+        selectAdminQuiz(currentQuizNumber);
+        showAdminStatus("Your latest quiz data was loaded.");
+    }else{
+        showAdminStatus("Could not load your latest quiz data.");
+    }
+}
+
+/* =========================================================
+   RECORDS
+========================================================= */
+
+function renderRecords(){
+
+    if(!isTeacher()){
+        return;
+    }
+
+    const all =
+        getRecords(
+            currentQuizNumber
+        );
+
+    const search =
+        $("recordSearch")
+            .value
+            .trim()
+            .toLowerCase();
+
+    const sectionFilter =
+        $("sectionFilter")
+            .value;
+
+    const sections = [
+        ...new Set(
+            all
+                .map(
+                    record =>
+                        record.section
+                )
+                .filter(Boolean)
+        )
+    ].sort();
+
+    const currentFilter =
+        sectionFilter;
+
+    $("sectionFilter").innerHTML =
+        `<option value="">
+            All Classes / Sections
+        </option>` +
+        sections
+            .map(
+                section =>
+                    `<option value="${
+                        escapeHTML(section)
+                    }">
+                        ${
+                            escapeHTML(section)
+                        }
+                    </option>`
+            )
+            .join("");
+
+    $("sectionFilter").value =
+        sections.includes(currentFilter)
+            ? currentFilter
+            : "";
+
+    const filtered =
+        all.filter(record=>{
+
+        const studentMatch =
+            !search ||
+            record.student
+                .toLowerCase()
+                .includes(search) ||
+            String(record.email || "")
+                .toLowerCase()
+                .includes(search) ||
+            String(record.section || "")
+                .toLowerCase()
+                .includes(search);
+
+        const sectionMatch =
+            !sectionFilter ||
+            record.section ===
+            sectionFilter;
+
+        return studentMatch &&
+            sectionMatch;
+    });
+
+    const students =
+        new Set(
+            all.map(
+                record=>record.student
+            )
+        ).size;
+
+    const sectionCount =
+        new Set(
+            all
+                .map(
+                    record=>record.section
+                )
+                .filter(Boolean)
+        ).size;
+
+    const completedRecords = all.filter(record=>record.status !== "In Progress");
+    const average =
+        completedRecords.length
+            ? Math.round(
+                completedRecords.reduce(
+                    (sum,record)=>sum + Number(record.percentage || 0),
+                    0
+                ) / completedRecords.length
+            )
+            : 0;
+
+    const securityTotal =
+        all.reduce(
+            (sum,record)=>
+                sum +
+                Number(
+                    record.securityEvents || 0
+                ),
+            0
+        );
+
+    $("statSubmissions").textContent =
+        all.length;
+
+    $("statStudents").textContent =
+        students;
+
+    $("statSections").textContent =
+        sectionCount;
+
+    $("statAverage").textContent =
+        average + "%";
+
+    $("statSecurity").textContent =
+        securityTotal;
+
+    const container =
+        $("recordsContainer");
+
+    if(!filtered.length){
+
+        container.innerHTML = `
+
+            <div class="card center"
+            style="background:#f8fafc">
+
+                <h3>No Records</h3>
+
+                <p class="small">
+                    There are no student submissions
+                    matching your search.
+                </p>
+
+            </div>
+        `;
+
+        return;
+    }
+
+    filtered.sort(
+        (a,b)=>
+            new Date(b.submittedAt) -
+            new Date(a.submittedAt)
+    );
+
+    container.innerHTML = `
+
+        <div class="records-wrap">
+
+        <table class="records-table">
+
+        <thead>
+        <tr>
+            <th>Student</th>
+            <th>Email</th>
+            <th>Class / Section</th>
+            <th>Score</th>
+            <th>Security</th>
+            <th>Status</th>
+            <th>Submission</th>
+            <th>Date</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+
+        <tbody>
+
+        ${filtered.map(record=>{
+
+            const badge =
+                record.percentage >= 75
+                    ? "badge-green"
+                    : record.percentage >= 60
+                        ? "badge-yellow"
+                        : "badge-red";
+
+            return `
+
+                <tr>
+
+                    <td>
+                        <strong>
+                            ${
+                                escapeHTML(
+                                    record.student
+                                )
+                            }
+                        </strong>
+                    </td>
+
+                    <td>${escapeHTML(record.email || "")}</td>
+
+                    <td>
+                        <span class="badge badge-blue">
+                            ${
+                                escapeHTML(
+                                    record.section
+                                )
+                            }
+                        </span>
+                    </td>
+
+                    <td>
+
+                        <span class="badge ${badge}">
+                            ${
+                                record.percentage
+                            }%
+                        </span>
+
+                        <div class="small">
+                            ${
+                                record.correct
+                            }/${record.total} point(s)
+                        </div>
+
+                    </td>
+
+                    <td>
+
+                        <span class="badge ${
+                            Number(
+                                record.securityEvents
+                            ) >= 2
+                                ? "badge-red"
+                                : "badge-green"
+                        }">
+
+                            ${
+                                record.securityEvents || 0
+                            }
+
+                        </span>
+
+                    </td>
+
+                    <td>
+
+                        <span class="badge ${
+                            record.automatic
+                                ? "badge-yellow"
+                                : "badge-green"
+                        }">
+
+                            ${
+                                record.status || (record.automatic ? "Automatic" : "Manual")
+                            }
+
+                        </span>
+                        <div class="small">Logins: ${getRecords(currentQuizNumber).filter(x => x.email && record.email && x.email.toLowerCase() === record.email.toLowerCase()).length}</div>
+
+                    </td>
+
+                    <td>
+                        ${
+                            escapeHTML(
+                                formatDate(
+                                    record.submittedAt || record.startedAt
+                                )
+                            )
+                        }
+                    </td>
+
+                    <td>
+
+                        <button
+                            class="btn btn-primary"
+                            onclick="viewRecord('${record.id}')">
+                            View
+                        </button>
+                         <button
+                             class="btn btn-danger"
+                             onclick="deleteRecord('${record.id}')">
+                             Delete
+                         </button>
+
+                    </td>
+
+                </tr>
+            `;
+
+        }).join("")}
+
+        </tbody>
+
+        </table>
+
+        </div>
+    `;
+}
+
+
+/* =========================================================
+   RECORD DETAIL
+========================================================= */
+
+function viewRecord(id){
+
+    const record =
+        getRecords(
+            currentQuizNumber
+        ).find(
+            item=>item.id === id
+        );
+
+    if(!record){
+
+        alert(
+            "Record not found."
+        );
+
+        return;
+    }
+
+    currentRecordId = id;
+
+    $("detailName").textContent =
+        record.student;
+
+    $("detailMeta").innerHTML = `
+
+        <strong>Email:</strong>
+        ${escapeHTML(record.email || "")}
+        &nbsp; | &nbsp;
+        <strong>Class / Section:</strong>
+        ${
+            escapeHTML(
+                record.section
+            )
+        }
+
+        &nbsp; | &nbsp;
+
+        <strong>Quiz:</strong>
+        ${
+            escapeHTML(
+                record.quizTitle
+            )
+        }
+
+        &nbsp; | &nbsp;
+
+        <strong>Status:</strong>
+        ${escapeHTML(record.status || "Completed")}
+
+        &nbsp; | &nbsp;
+
+        <strong>Score:</strong>
+        ${record.percentage}%
+
+        &nbsp; | &nbsp;
+
+        <strong>Security Events:</strong>
+        ${record.securityEvents || 0}
+
+        &nbsp; | &nbsp;
+
+        <strong>Submitted:</strong>
+        ${
+            escapeHTML(
+                formatDate(
+                    record.submittedAt
+                )
+            )
+        }
+    `;
+
+    $("detailAnswers").innerHTML =
+        record.detailedAnswers
+            .map(answer=>{
+
+            let className =
+                "answer-review";
+
+            if(
+                !isAnswered(
+                    answer.studentAnswer
+                )
+            ){
+
+                className +=
+                    " unanswered";
+
+            }else if(
+                answer.isCorrect
+            ){
+
+                className +=
+                    " correct";
+
+            }else{
+
+                className +=
+                    " wrong";
+            }
+
+            let studentText =
+                answer.selected;
+
+            if(
+                answer.type ===
+                "enumeration" &&
+                Array.isArray(
+                    answer.studentAnswer
+                )
+            ){
+
+                studentText =
+                    answer.studentAnswer
+                        .filter(Boolean)
+                        .join(", ");
+            }
+
+            return `
+
+                <div class="${className}">
+
+                    <div class="question-type">
+                        ${
+                            getQuestionTypeName(
+                                answer.type
+                            )
+                        }
+                    </div>
+
+                    <strong>
+                        Question ${answer.number}
+                    </strong>
+
+                    <p>
+                        ${
+                            escapeHTML(
+                                answer.question
+                            )
+                        }
+                    </p>
+
+                    <p class="small">
+
+                        <strong>
+                            Student Answer:
+                        </strong>
+
+                        ${
+                            studentText
+                                ? escapeHTML(
+                                    studentText
+                                )
+                                : "No answer"
+                        }
+
+                    </p>
+
+                    <p class="small">
+
+                        <strong>
+                            Correct Answer:
+                        </strong>
+
+                        ${
+                            escapeHTML(
+                                answer.correct
+                            )
+                        }
+
+                    </p>
+
+                    <span class="badge ${
+                        !isAnswered(
+                            answer.studentAnswer
+                        )
+                            ? "badge-yellow"
+                            : answer.isCorrect
+                                ? "badge-green"
+                                : "badge-red"
+                    }">
+
+                        ${
+                            !isAnswered(
+                                answer.studentAnswer
+                            )
+                                ? "Unanswered"
+                                : answer.isCorrect
+                                    ? "Correct"
+                                    : "Incorrect"
+                        }
+
+                    </span>
+
+                </div>
+            `;
+
+        })
+        .join("");
+
+    $("recordDetail")
+        .classList
+        .remove("hidden");
+}
+
+function closeRecordDetail(){
+
+    $("recordDetail")
+        .classList
+        .add("hidden");
+}
+
+
+
+/* =========================================================
+   STUDENT ANTI-COPY
+========================================================= */
+function isStudentAnswerField(target){
+    if(!target) return false;
+
+    const tag =
+        String(target.tagName || "").toLowerCase();
+
+    return (
+        tag === "input" ||
+        tag === "textarea" ||
+        tag === "select" ||
+        target.isContentEditable
+    );
+}
+
+document.addEventListener("copy", function(event){
+    if(
+        typeof currentStudentQuiz !== "undefined" &&
+        currentStudentQuiz &&
+        !isStudentAnswerField(event.target)
+    ){
+        event.preventDefault();
+    }
+});
+
+document.addEventListener("cut", function(event){
+    if(
+        typeof currentStudentQuiz !== "undefined" &&
+        currentStudentQuiz &&
+        !isStudentAnswerField(event.target)
+    ){
+        event.preventDefault();
+    }
+});
+
+document.addEventListener("contextmenu", function(event){
+    if(
+        typeof currentStudentQuiz !== "undefined" &&
+        currentStudentQuiz &&
+        !isStudentAnswerField(event.target)
+    ){
+        event.preventDefault();
+    }
+});
+
+document.addEventListener("dragstart", function(event){
+    if(
+        typeof currentStudentQuiz !== "undefined" &&
+        currentStudentQuiz &&
+        !isStudentAnswerField(event.target)
+    ){
+        event.preventDefault();
+    }
+});
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+function showAdminStatus(message){
+
+    const box =
+        $("adminStatus");
+
+    box.textContent =
+        message;
+
+    box.classList.remove(
+        "hidden"
+    );
+
+    clearTimeout(
+        showAdminStatus.timer
+    );
+
+    showAdminStatus.timer =
+        setTimeout(
+            ()=>{
+                box.classList.add(
+                    "hidden"
+                );
+            },
+            4000
+        );
+}
+
+
+/* =========================================================
+   EXPORT / IMPORT
+========================================================= */
+
+function download(
+    content,
+    filename,
+    type
+){
+
+    const blob =
+        new Blob(
+            [content],
+            {type}
+        );
+
+    const url =
+        URL.createObjectURL(blob);
+
+    const link =
+        document.createElement("a");
+
+    link.href = url;
+    link.download = filename;
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    link.remove();
+
+    setTimeout(
+        ()=>URL.revokeObjectURL(url),
+        1000
+    );
+}
+
+function exportQuiz(){
+
+    const quiz =
+        getQuiz(
+            currentQuizNumber
+        );
+
+    download(
+        JSON.stringify(
+            quiz,
+            null,
+            2
+        ),
+        "Quiz_" +
+        currentQuizNumber +
+        ".json",
+        "application/json"
+    );
+}
+
+function importQuiz(event){
+
+    const file =
+        event.target.files[0];
+
+    if(!file){
+        return;
+    }
+
+    const reader =
+        new FileReader();
+
+    reader.onload =
+        function(e){
+
+        try{
+
+            const imported =
+                JSON.parse(
+                    e.target.result
+                );
+
+            repairQuiz(
+                imported,
+                currentQuizNumber
+            );
+
+            if(!validateQuiz(imported)){
+                return;
+            }
+
+            imported.id =
+                currentQuizNumber;
+
+            quizzes[
+                currentQuizNumber
+            ] = clone(imported);
+
+            saveQuizzes();
+
+            selectAdminQuiz(
+                currentQuizNumber
+            );
+
+            renderHomeQuizzes();
+
+            showAdminStatus(
+                "Quiz imported successfully."
+            );
+
+        }catch(error){
+
+            alert(
+                "Unable to import quiz."
+            );
+        }
+    };
+
+    reader.readAsText(file);
+
+    event.target.value = "";
+}
+
+function exportRecords(){
+
+    const data = {
+
+        quiz:
+            getQuiz(
+                currentQuizNumber
+            ),
+
+        records:
+            getRecords(
+                currentQuizNumber
+            ),
+
+        exportedAt:
+            new Date().toISOString()
+    };
+
+    download(
+        JSON.stringify(
+            data,
+            null,
+            2
+        ),
+        "Quiz_" +
+        currentQuizNumber +
+        "_Records.json",
+        "application/json"
+    );
+}
+
+function exportAllData(){
+
+    download(
+        JSON.stringify(
+            {
+                quizzes,
+                records,
+                exportedAt:
+                    new Date().toISOString()
+            },
+            null,
+            2
+        ),
+        "GarthQuiz_All_Data.json",
+        "application/json"
+    );
+}
+
+
+/* =========================================================
+   CLEAR RECORDS
+========================================================= */
+
+function deleteRecord(id){
+
+    if(!isTeacher()){
+        return;
+    }
+
+    const recordsForQuiz =
+        getRecords(currentQuizNumber);
+
+    const index =
+        recordsForQuiz.findIndex(
+            record => record.id === id
+        );
+
+    if(index === -1){
+        alert("Student record not found.");
+        return;
+    }
+
+    const record =
+        recordsForQuiz[index];
+
+    if(!confirm(
+        "Delete the record for " +
+        record.student +
+        " (" +
+        record.section +
+        ")?\n\n" +
+        "Score: " +
+        record.percentage +
+        "%\n\n" +
+        "This action cannot be undone."
+    )){
+        return;
+    }
+
+    recordsForQuiz.splice(index, 1);
+    saveRecords();
+
+    // Delete the same record from Google Sheets.
+    sendToGoogleSheets(record, "delete");
+
+    if(currentRecordId === id){
+        currentRecordId = null;
+        closeRecordDetail();
+    }
+
+    renderRecords();
+
+    showAdminStatus(
+        "Student record deleted successfully."
+    );
+}
+
+
+function deleteCurrentRecord(){
+
+    if(!currentRecordId){
+        alert("No student record is selected.");
+        return;
+    }
+
+    deleteRecord(currentRecordId);
+}
+
+
+function clearRecords(){
+
+    const existing =
+        getRecords(
+            currentQuizNumber
+        );
+
+    if(!existing.length){
+
+        alert(
+            "There are no records to delete."
+        );
+
+        return;
+    }
+
+    if(!confirm(
+        "Delete ALL records for Quiz " +
+        currentQuizNumber +
+        "?"
+    )){
+
+        return;
+    }
+
+    const confirmation =
+        prompt(
+            "Type DELETE to confirm:"
+        );
+
+    if(
+        confirmation !==
+        "DELETE"
+    ){
+
+        return;
+    }
+
+        records[
+        currentQuizNumber
+    ] = [];
+
+    saveRecords();
+
+    // Delete all records for this quiz from Google Sheets.
+    if(googleSheetsConnected()){
+        sendToGoogleSheets(
+            {quizNumber: currentQuizNumber},
+            "deleteAll"
+        );
+    }
+
+    currentRecordId = null;
+    closeRecordDetail();
+
+    renderRecords();
+
+    showAdminStatus(
+        "Quiz records deleted."
+    );
+}
+
+
+/* =========================================================
+   HOME
+========================================================= */
+
+function goHome(){
+
+    if(
+        quizStarted &&
+        !quizSubmitted
+    ){
+
+        if(!confirm(
+            "Your quiz is still in progress. Leave the quiz?"
+        )){
+
+            return;
+        }
+    }
+
+    quizStarted = false;
+
+    exitFullscreen();
+
+    showScreen(
+        "homeScreen"
+    );
+
+    renderHomeQuizzes();
+}
+
+
+
+function updateGoogleSheetsStatus(){
+    const box = $("googleSheetsStatus");
+    if(!box) return;
+
+    if(googleSheetsConnected()){
+        box.textContent = "Central teacher database: Connected";
+        box.style.color = "#166534";
+        box.style.fontWeight = "800";
+    }else{
+        box.textContent = "Central teacher database: Not connected.";
+        box.style.color = "#92400e";
+        box.style.fontWeight = "800";
+    }
+}
+
+/* =========================================================
+   INITIALIZE
+========================================================= */
+
+window.addEventListener("load", async ()=>{
+    quizzes = loadQuizzes();
+    records = loadRecords();
+
+    const token = sessionStorage.getItem(SESSION_KEY);
+
+    if(token){
+        const ok = await loadTeacherData();
+        if(ok){
+            $("teacherDisplay").textContent = currentTeacher.name || currentTeacher.username;
+            showAdminDashboard();
+            startLiveMonitor();
+            return;
+        }
+        sessionStorage.removeItem(SESSION_KEY);
+    }
+
+    await loadPublishedQuizzes();
+    showScreen("homeScreen");
+});
+
+</script>
+
+
+<script>
+/* =========================================================
+   FIX: TEACHER DASHBOARD BUTTON
+   Ensures the button is clickable even if its inline handler
+   was lost/overridden.
+========================================================= */
+(function(){
+    function bindTeacherDashboardButton(){
+        const buttons = Array.from(document.querySelectorAll("button, .btn, .quiz-card"));
+
+        const dashboardButton = buttons.find(function(el){
+            return (el.textContent || "").trim().toLowerCase() === "teacher dashboard";
+        });
+
+        if(!dashboardButton || dashboardButton.dataset.dashboardFixed === "1"){
+            return;
+        }
+
+        dashboardButton.dataset.dashboardFixed = "1";
+
+        dashboardButton.style.cursor = "pointer";
+        dashboardButton.style.pointerEvents = "auto";
+
+        dashboardButton.addEventListener("click", function(event){
+            event.preventDefault();
+            event.stopPropagation();
+
+            /* Use the existing teacher-login/dashboard function if present. */
+            if(typeof showTeacherLogin === "function"){
+                showTeacherLogin();
+                return;
+            }
+
+            if(typeof showTeacherLoginModal === "function"){
+                showTeacherLoginModal();
+                return;
+            }
+
+            if(typeof openTeacherLogin === "function"){
+                openTeacherLogin();
+                return;
+            }
+
+            /* If already authenticated, open the dashboard directly. */
+            if(typeof isTeacher === "function" && isTeacher()){
+                if(typeof showAdminDashboard === "function"){
+                    showAdminDashboard();
+                    return;
+                }
+            }
+
+            /* Last-resort: find an existing teacher login screen. */
+            const loginScreen =
+                document.getElementById("teacherLoginScreen") ||
+                document.getElementById("teacherScreen") ||
+                document.getElementById("loginScreen");
+
+            if(loginScreen){
+                loginScreen.classList.remove("hidden");
+                loginScreen.style.display = "";
+            }else{
+                alert("Teacher login screen could not be opened.");
+            }
+        }, true);
+    }
+
+    if(document.readyState === "loading"){
+        document.addEventListener("DOMContentLoaded", bindTeacherDashboardButton);
+    }else{
+        bindTeacherDashboardButton();
+    }
+
+    window.addEventListener("load", bindTeacherDashboardButton);
+})();
+
+/* =========================================================
+   GARTHQUIZ SECURE ATTEMPT GUARD
+   One attempt per email + quiz, with refresh recovery.
+   ========================================================= */
+const GQ_ATTEMPT_PREFIX = "garthquiz_attempt_v1_";
+const GQ_HEARTBEAT_MS = 5000;
+let gqHeartbeat = null;
+
+function gqNormalizeEmail(v){
+    return String(v || "").trim().toLowerCase();
+}
+function gqAttemptKey(email, quizNumber){
+    return GQ_ATTEMPT_PREFIX + gqNormalizeEmail(email) + "_" + Number(quizNumber);
+}
+function gqGetAttempt(email, quizNumber){
+    try { return JSON.parse(localStorage.getItem(gqAttemptKey(email, quizNumber)) || "null"); }
+    catch(e){ return null; }
+}
+function gqSaveAttempt(data){
+    localStorage.setItem(gqAttemptKey(data.email, data.quizNumber), JSON.stringify(data));
+}
+function gqClearAttempt(email, quizNumber){
+    localStorage.removeItem(gqAttemptKey(email, quizNumber));
+}
+
+/* This guard prevents accidental duplicate starts on the same browser.
+   The server/database must also enforce the same email+quiz rule for
+   protection across devices. */
+async function gqCheckBeforeStart(email, quizNumber){
+    email = gqNormalizeEmail(email);
+    if(!email) return {ok:false, message:"Please enter your email address."};
+
+    const existing = gqGetAttempt(email, quizNumber);
+
+    /* Same active attempt: allow resume after refresh/reopen. */
+    if(existing && existing.status === "in_progress"){
+        return {ok:true, resume:true, attempt:existing};
+    }
+
+    /* Completed attempt: allow exactly one additional attempt. */
+    if(existing && existing.status === "completed"){
+        const used = Number(existing.attemptNumber || 1);
+        if(used >= 2){
+            return {
+                ok:false,
+                message:"You have already used both attempts for this quiz. You cannot take it again."
+            };
+        }
+        return {ok:true, newAttempt:true, previous:existing};
+    }
+
+    return {ok:true, newAttempt:true};
+}
+
+function gqStartLocalAttempt(email, quizNumber, attemptNumber=1){
+    const data = {
+        attemptId: (typeof generateId === "function" ? generateId("attempt") : "attempt_"+Date.now()),
+        email:gqNormalizeEmail(email),
+        quizNumber:Number(quizNumber),
+        attemptNumber:Number(attemptNumber),
+        maxAttempts:2,
+        student:currentStudent || "",
+        section:currentStudentSection || "",
+        startedAt:new Date().toISOString(),
+        lastActivityAt:new Date().toISOString(),
+        lastAction:"Started quiz",
+        status:"in_progress",
+        currentQuestion:1
+    };
+    gqSaveAttempt(data);
+    return data;
+}
+
+function gqTouch(action, questionNumber){
+    if(!currentQuiz || !quizStarted || quizSubmitted) return;
+    const email = gqNormalizeEmail(window.gqStudentEmail || "");
+    if(!email) return;
+    const data = gqGetAttempt(email, currentStudentQuiz) || {};
+    Object.assign(data, {
+        email,
+        quizNumber:Number(currentStudentQuiz),
+        student:currentStudent,
+        section:currentStudentSection,
+        lastActivityAt:new Date().toISOString(),
+        lastAction:action || "Active",
+        currentQuestion:Number(questionNumber || data.currentQuestion || 1),
+        status:"in_progress"
+    });
+    gqSaveAttempt(data);
+}
+
+function gqStartHeartbeat(){
+    clearInterval(gqHeartbeat);
+    gqHeartbeat = setInterval(()=>gqTouch("Active"), GQ_HEARTBEAT_MS);
+}
+
+function gqStopHeartbeat(){
+    clearInterval(gqHeartbeat);
+    gqHeartbeat = null;
+}
+
+window.addEventListener("beforeunload", ()=>{
+    if(quizStarted && !quizSubmitted) gqTouch("Page refreshed/closed");
+});
+window.addEventListener("pagehide", ()=>{
+    if(quizStarted && !quizSubmitted) gqTouch("Page hidden");
+});
+
+</script>
+
+</body>
+</html>
