@@ -1279,7 +1279,7 @@ Close
    Uses Google Apps Script as the central database.
    No Google Sheet is required for the quiz/record storage.
 ========================================================= */
-const API_URL = "https://script.google.com/macros/s/AKfycby-NyyS95DKCEQkqhsJU6QUOLHETxG-thDLDM38ea94_lXv34oLVTm4_9YM72b9Sxcq/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwH5AVwmSnXKY30E_hSmKGiLCwjYitAERRAj8PpAtuCqfcvsbfxebA9duEXvgciQaWgwA/exec";
 
 const QUIZ_KEY = "classquiz_pro_v4_quizzes";
 const RECORD_KEY = "classquiz_pro_v4_records";
@@ -2134,6 +2134,7 @@ function renderQuestionAsImage(container, text){
     const value = String(text || "");
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
+    if(!ctx) return;
 
     const fontSize = 18;
     const fontFamily = "Arial, Helvetica, sans-serif";
@@ -2147,44 +2148,25 @@ function renderQuestionAsImage(container, text){
 
     const lines = [];
     value.split(/\r?\n/).forEach(paragraph => {
-        if(paragraph === ""){
-            lines.push("");
-            return;
-        }
-
+        if(paragraph === ""){ lines.push(""); return; }
         const words = paragraph.split(/\s+/);
         let line = "";
-
         words.forEach(word => {
             const test = line ? line + " " + word : word;
-            if(ctx.measureText(test).width <= textWidth){
-                line = test;
-                return;
-            }
-
-            if(line){
-                lines.push(line);
-                line = "";
-            }
-
-            // Break extremely long words so they still fit inside the image.
+            if(ctx.measureText(test).width <= textWidth){ line = test; return; }
+            if(line) lines.push(line);
             if(ctx.measureText(word).width <= textWidth){
                 line = word;
             }else{
                 let part = "";
                 for(const ch of word){
                     const testPart = part + ch;
-                    if(ctx.measureText(testPart).width <= textWidth){
-                        part = testPart;
-                    }else{
-                        if(part) lines.push(part);
-                        part = ch;
-                    }
+                    if(ctx.measureText(testPart).width <= textWidth) part = testPart;
+                    else { if(part) lines.push(part); part = ch; }
                 }
                 line = part;
             }
         });
-
         if(line || paragraph === "") lines.push(line);
     });
 
@@ -2197,30 +2179,25 @@ function renderQuestionAsImage(container, text){
     canvas.height = Math.ceil(cssHeight * ratio);
     canvas.style.width = cssWidth + "px";
     canvas.style.height = cssHeight + "px";
+    canvas.className = "question-image";
+    canvas.setAttribute("aria-hidden", "true");
+    canvas.draggable = false;
+    canvas.style.userSelect = "none";
+    canvas.style.webkitUserSelect = "none";
+    canvas.style.pointerEvents = "none";
+    canvas.style.maxWidth = "100%";
+    canvas.style.display = "block";
 
     ctx.scale(ratio, ratio);
     ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
     ctx.fillStyle = "#111827";
     ctx.textBaseline = "top";
-
     safeLines.forEach((line, i) => {
         ctx.fillText(line, padding, padding + i * lineHeight);
     });
 
-    const image = document.createElement("img");
-    image.src = canvas.toDataURL("image/png");
-    image.alt = "Question";
-    image.draggable = false;
-    image.className = "question-image";
-    image.setAttribute("aria-label", "Question image");
-    image.style.userSelect = "none";
-    image.style.webkitUserSelect = "none";
-    image.style.pointerEvents = "none";
-    image.style.maxWidth = "100%";
-    image.style.height = "auto";
-    image.style.display = "block";
-
-    container.appendChild(image);
+    // The actual question exists only in canvas pixels, not in a DOM text node.
+    container.appendChild(canvas);
 }
 
 function renderQuiz(){
@@ -5766,7 +5743,7 @@ async function deleteRecord(id){
     if(!isTeacher()) return;
 
     const recordsForQuiz = getRecords(currentQuizNumber);
-    const record = recordsForQuiz.find(r => r.id === id);
+    const record = recordsForQuiz.find(r => String(r.id) === String(id));
 
     if(!record){
         alert("Student record not found.");
@@ -5782,55 +5759,35 @@ async function deleteRecord(id){
         "Score: " +
         record.percentage +
         "%\n\n" +
-        "This will permanently remove this attempt from the teacher dashboard."
+        "This action cannot be undone."
     )){
         return;
     }
 
-    // Older versions could leave duplicate remote rows with the same attemptId.
-    // If we delete only the visible row, the live monitor can fetch the leftover
-    // duplicate and make the deleted record appear again. Delete every remote
-    // row belonging to this exact attempt (or exact active student record).
-    const allLocal = getRecords(currentQuizNumber);
-    const related = allLocal.filter(r => {
-        if(record.attemptId && r.attemptId){
-            return String(r.attemptId) === String(record.attemptId);
-        }
-
-        return (
-            String(r.teacherId || "") === String(record.teacherId || "") &&
-            String(r.quizNumber || currentQuizNumber) === String(record.quizNumber || currentQuizNumber) &&
-            String(r.email || "").trim().toLowerCase() === String(record.email || "").trim().toLowerCase() &&
-            r.status === record.status
-        );
-    });
-
-    const deleteTargets = related.length ? related : [record];
-    const uniqueIds = [...new Set(deleteTargets.map(r => r.id).filter(Boolean))];
+    // Pause the live monitor so it cannot render the old server copy while
+    // the delete request is in progress.
+    clearInterval(liveMonitorInterval);
 
     showAdminStatus("Deleting student record...");
 
-    let failed = [];
-    for(const targetId of uniqueIds){
-        const target = deleteTargets.find(r => r.id === targetId) || record;
-        const response = await sendToGoogleSheets(target, "delete");
-        if(!response || !response.ok){
-            failed.push(targetId);
-        }
-    }
+    // Delete the exact record ID. The corrected backend removes ALL copies
+    // of this ID, including duplicates created by older versions.
+    const response = await sendToGoogleSheets(record, "delete");
 
-    if(failed.length){
-        alert("The record could not be completely deleted from the server. Please try again.");
-        await refreshRecordsFromGoogleSheets();
+    if(!response || !response.ok){
+        showAdminStatus("Delete failed.");
+        alert((response && response.message) || "The server did not delete the record. Please try again.");
+        startLiveMonitor();
         return;
     }
 
-    // Remove all local copies of this attempt too.
-    const idsToRemove = new Set(uniqueIds);
-    records[currentQuizNumber] = allLocal.filter(r => !idsToRemove.has(r.id));
+    // Remove every local copy with the same ID.
+    records[currentQuizNumber] = getRecords(currentQuizNumber).filter(
+        r => String(r.id) !== String(id)
+    );
     saveRecords();
 
-    if(currentRecordId && idsToRemove.has(currentRecordId)){
+    if(String(currentRecordId) === String(id)){
         currentRecordId = null;
         closeRecordDetail();
     }
@@ -5838,22 +5795,22 @@ async function deleteRecord(id){
     renderRecords();
     showAdminStatus("Student record deleted successfully.");
 
-    // Verify the server state so the 3-second live monitor cannot immediately
-    // restore a record that was not actually deleted.
+    // Confirm that the server no longer returns this ID before restarting
+    // the live monitor.
     const verify = await loadRecordsFromGoogleSheets(currentQuizNumber);
-    if(verify){
-        const stillThere = verify.some(r => idsToRemove.has(r.id));
-        if(stillThere){
-            alert("The server still contains this record. Please delete it again.");
-            records[currentQuizNumber] = verify;
-            saveRecords();
-            renderRecords();
-        }else{
-            records[currentQuizNumber] = verify;
-            saveRecords();
-            renderRecords();
-        }
+
+    if(verify && verify.some(r => String(r.id) === String(id))){
+        alert("The server still contains this record. Please deploy the updated Google Apps Script backend and try again.");
+        records[currentQuizNumber] = verify;
+        saveRecords();
+        renderRecords();
+    }else if(verify){
+        records[currentQuizNumber] = verify;
+        saveRecords();
+        renderRecords();
     }
+
+    startLiveMonitor();
 }
 
 function deleteCurrentRecord(){
